@@ -17,7 +17,6 @@ const ChatListScreen = props => {
     const userData = useSelector(state => state.auth.userData);
     const storedUsers = useSelector(state => state.users.storedUsers);
 
-    
     const userConvos = []
 
     const userChats = useSelector(state => {
@@ -53,9 +52,6 @@ const ChatListScreen = props => {
     
     useEffect(() => {
         props.navigation.setOptions({
-            headerStyle: {
-              backgroundColor: '#0E1528', 
-            },
             headerLeft: () => {
                 return <PageTitle text="  Home" />
             }
@@ -100,19 +96,19 @@ const ChatListScreen = props => {
         
         
 
-        props.navigation.navigate("ChatScreen", navigationProps);
+        props.navigation.navigate("ChatScreen", navigationProps)
 
+        //most likely this is causing prevDeps.length is undefined
     }, [props.route?.params])
 
 
     
     return <PageContainer>
 
-        {/* <PageTitle text="Home" /> */}
 
             <View>
 
-            <Text  style={[styles.groupText, { paddingTop: 20 }]}>Continue Working</Text>
+            <Text  style={[styles.groupText, { paddingVertical: 10 }]}>Continue Working</Text>
 
             <FlatList
                 data={latestConvos}
@@ -127,6 +123,7 @@ const ChatListScreen = props => {
                             subTitle={convoData.latestMessageText}
                             date={convoData.updatedAt}
                             chatName={convoData.chat}
+                            color={convoData.color}
                             onPress={() => props.navigation.navigate("ChatScreen", { chatId, convoId })}
                         />
                 }}
@@ -161,21 +158,18 @@ const ChatListScreen = props => {
                     const isGroupChat = chatData.isGroupChat;
 
                     let title = "";
-                    //const subTitle = chatData.latestMessageText || "New chat";
                     let subTitle = `${chatData.latestConvo}: ${chatData.latestMessageText}` || "New chat";
                     let image = "";
 
                     if (isGroupChat) {
                         title = chatData.chatName;  
                         image = chatData.chatImage;
-                       // subTitle = `${chatData.numberUsers} group members` || "New chat";
                         
                     } else {
                         if (chatData.users == userData.userId){
                             
                             title = chatData.chatName;
                             image = chatData.chatImage;
-                            //subTitle = "Personal AI Chat"
                         } else {
                             const otherUserId = chatData.users.find(uid => uid !== userData.userId);
                             const otherUser = storedUsers[otherUserId];
@@ -184,7 +178,6 @@ const ChatListScreen = props => {
 
                             title = `${otherUser.firstName} ${otherUser.lastName}`;
                             image = otherUser.profilePicture;
-                            //subTitle = "Direct message"
                         }
                         
                     }
@@ -202,11 +195,6 @@ const ChatListScreen = props => {
 };
 
 const styles = StyleSheet.create({
-    // container: {
-    //     flex: 1,
-    //     justifyContent: 'center',
-    //     alignItems: 'center'
-    // },
     groupContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',

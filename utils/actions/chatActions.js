@@ -1,70 +1,15 @@
-import 'react-native-url-polyfill/auto';
+
 import { child, get, getDatabase, push, ref, remove, set, update } from "firebase/database";
 import { getFirebaseApp } from "../firebaseHelper";
 import { getUserPushTokens } from "./authActions";
 import { addUserChat, deleteUserChat, getUserChats } from "./userActions";
-import keys from '../../constants/keys';
-import { createIconSetFromFontello } from '@expo/vector-icons';
 
 
-export const sendQuestionGPT3 = async (convoId, chatId, senderId, question) => {
-    const { Configuration, OpenAIApi } = require('openai')
-    const configuration = new Configuration({
-      apiKey: keys.ai,
-    })
-    const openai = new OpenAIApi(configuration)
-
-    console.log("here in ai before response")
-    try {
-        const response = await openai.createCompletion({
-          model: 'text-davinci-003',
-          prompt: `Give me the answer to: ${question}?`,
-          temperature: 1,
-          max_tokens: 2060,
-        });
-    
-        const answer = response.data.choices[0].text.trim();
-        console.log("here in ai after response")
-
-        
-        const app = getFirebaseApp();
-        const dbRef = ref(getDatabase(app));
-        const messagesRef = child(dbRef, `messages/${convoId}`);
-
-
-        const messageData = {
-            sentBy: senderId,
-            question: question,
-            modelAI: 'GPT-3',
-            modelAIPhoto: "https://firebasestorage.googleapis.com/v0/b/helloai2.appspot.com/o/profilePics%2Fopenai-avatar.png?alt=media&token=4c5ae596-3a7a-4f5d-a772-88e792f05b73",
-            sentAt: new Date().toISOString(),
-            text: answer,
-            type: "AIMessage"
-        };
-
-
-        await push(messagesRef, messageData);
-        
-        const convoRef = child(dbRef, `convos/${chatId}/${convoId}`);
-        await update(convoRef, {
-            updatedBy: senderId,
-            updatedAt: new Date().toISOString(),
-            latestMessageText: answer
-        });
-
-    } catch (e) {
-        console.error("Error asking AI: ", e);
-    }
-
-
-    
-}
 
 export const createChat = async (loggedInUserId, chatData) => {
 
     const newChatData = {
         ...chatData,
-        //numberUsers: chatData.users.length,
         createdBy: loggedInUserId,
         updatedBy: loggedInUserId,
         createdAt: new Date().toISOString(),
@@ -86,7 +31,7 @@ export const createChat = async (loggedInUserId, chatData) => {
     return newChat.key;
 }
 
-export const createConvo = async (loggedInUserId, chatData, chatId) => {
+export const createConvo = async (loggedInUserId, chatData, chatId, color) => {
 
    
     const app = getFirebaseApp();
@@ -98,15 +43,13 @@ export const createConvo = async (loggedInUserId, chatData, chatId) => {
     
     const convoData = {
         convoName:  "Convo",
-        category: "Convos",
         chat: chatData.isGroupChat ? chatData.chatName : 'Chat',
         chatId: chatId,
         createdBy: loggedInUserId,
         updatedBy: loggedInUserId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        // userMap: [loggedInUserId],
-        // colorMap: ["#FF6653"]
+        color: color,
     };
    
     const convoKey = await push(convosRef, convoData);
@@ -117,14 +60,6 @@ export const createConvo = async (loggedInUserId, chatData, chatId) => {
 
 export const sendTextMessage = async (convoId, chatId, senderData, messageText, replyTo, chatUsers) => {
     await sendMessage(convoId, chatId, senderData.userId, messageText, null, replyTo, null);
-
-    const otherUsers = chatUsers.filter(uid => uid !== senderData.userId);
-    await sendPushNotificationForUsers(otherUsers, `${senderData.firstName} ${senderData.lastName}`, messageText, chatId, convoId);
-}
-
-export const sendAIMessage = async (convoId, chatId, senderData, messageText, replyTo, chatUsers) => {
-    console.log("here before asking")
-    await sendMessage(convoId, chatId, senderData.userId, messageText, null, replyTo, "myMessageAI");
 
     const otherUsers = chatUsers.filter(uid => uid !== senderData.userId);
     await sendPushNotificationForUsers(otherUsers, `${senderData.firstName} ${senderData.lastName}`, messageText, chatId, convoId);
@@ -141,47 +76,6 @@ export const sendImage = async (convoId, chatId, senderData, imageUrl, replyTo, 
     await sendPushNotificationForUsers(otherUsers, `${senderData.firstName} ${senderData.lastName}`, `${senderData.firstName} sent an image`, chatId, convoId);
 }
 
-export const updateChatNameData = async (chatId, userId, chatData) => {
-    const app = getFirebaseApp();
-    const dbRef = ref(getDatabase(app));
-    const chatRef = child(dbRef, `chats/${chatId}`);
-
-    await update(chatRef, {
-        ...chatData,
-        updatedAt: new Date().toISOString(),
-        updatedBy: userId
-    })
-}
-
-export const updateChatDataSettings = async (chatId, userId, chatData) => {
-    const app = getFirebaseApp();
-    const dbRef = ref(getDatabase(app));
-    const chatRef = child(dbRef, `chats/${chatId}`);
-
-    await update(chatRef, {
-        ...chatData,
-        updatedAt: new Date().toISOString(),
-        updatedBy: userId
-    })
-}
-
-// export const updateConvoColorMap = async (chatId, convoData, senderID, newColor) => {
-//     const app = getFirebaseApp();
-//     const dbRef = ref(getDatabase(app));
-//     const convoRef = child(dbRef, `convos/${chatId}`);
-//     console.log("inside Convo map")
-//     const userMap = convoData.userMap || []; // if oldSenders is undefined, use an empty array
-//     const newUserMap = [...userMap, senderID]; 
-//     console.log(newUserMap)// create a new array that includes oldSenders and the new senderID
-//     const colorMap = convoData.colorMap || []; 
-//     const newColorMap = [...colorMap, newColor]; // create a new array that includes oldSenders and the new senderID
-//     console.log(newColorMap)
-//     await update(convoRef, {
-//         ...convoData,
-//         userMap: newUserMap,
-//         colorMap: newColorMap,
-//     })
-// }
 
 export const updateChatData = async (chatId, userId, chatData) => {
     const app = getFirebaseApp();
@@ -202,9 +96,29 @@ export const updateChatData = async (chatId, userId, chatData) => {
             updatedBy: userId
         })
     }
-    
+
+}
 
 
+
+export const updateConvoName = async (convoId, chatId, newConvoName) => {
+    const app = getFirebaseApp();
+    const dbRef = ref(getDatabase(app));
+
+    const convoRef = child(dbRef, `convos/${chatId}/${convoId}`);
+    await update(convoRef, {
+        convoName: newConvoName,
+        updatedAt: new Date().toISOString(),
+    });
+
+    // Retrieve the data at convoRef
+    const convoSnapshot = await get(convoRef);
+
+    const chatRef = child(dbRef, `chats/${chatId}`);
+    await update(chatRef, {
+        updatedAt: new Date().toISOString(),
+        latestConvo: convoSnapshot.val().convoName,
+    });
 }
 
 const sendMessage = async (convoId, chatId, senderId, messageText, imageUrl, replyTo, type) => {
@@ -295,13 +209,6 @@ export const removeUserFromChat = async (userLoggedInData, userToRemoveData, cha
             break;
         }
     }
-
-    //we would this for contributors
-    // const messageText = userLoggedInData.userId === userToRemoveData.userId ?
-    //     `${userLoggedInData.firstName} left the chat` :
-    //     `${userLoggedInData.firstName} removed ${userToRemoveData.firstName} from the chat`;
-
-    // await sendInfoMessage(convoId, chatData.key, userLoggedInData.userId, messageText);
 }
 
 export const addUsersToChat = async (userLoggedInData, usersToAddData, chatData) => {
@@ -329,10 +236,6 @@ export const addUsersToChat = async (userLoggedInData, usersToAddData, chatData)
 
     await updateChatData(chatData.key, userLoggedInData.userId, { users: existingUsers.concat(newUsers) })
 
-    //we would this for contributors addUsersToConvo and send a message to convo
-    // const moreUsersMessage = newUsers.length > 1 ? `and ${newUsers.length - 1} others ` : '';
-    // const messageText = `${userLoggedInData.firstName} ${userLoggedInData.lastName} added ${userAddedName} ${moreUsersMessage}to the chat`;
-    // await sendInfoMessage(convoId, chatData.key, userLoggedInData.userId, messageText);
 
 }
 

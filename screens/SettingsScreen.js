@@ -1,5 +1,5 @@
 import { Feather, FontAwesome } from '@expo/vector-icons';
-import React, { useCallback, useMemo, useReducer, useState } from 'react';
+import React, { useCallback, useMemo, useReducer, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import DataItem from '../components/DataItem';
@@ -13,6 +13,7 @@ import { updateLoggedInUserData } from '../store/authSlice';
 import { updateSignedInUserData, userLogout } from '../utils/actions/authActions';
 import { validateInput } from '../utils/actions/formActions';
 import { reducer } from '../utils/reducers/formReducer';
+
 
 const SettingsScreen = props => {
 
@@ -56,6 +57,14 @@ const SettingsScreen = props => {
         formIsValid: false
     }
 
+    useEffect(() => {
+        props.navigation.setOptions({
+            headerLeft: () => {
+                return <PageTitle text="  Settings" />
+            }
+    })
+    }, []);
+
     const [formState, dispatchFormState] = useReducer(reducer, initialState);
 
     const inputChangedHandler = useCallback((inputId, inputValue) => {
@@ -95,12 +104,11 @@ const SettingsScreen = props => {
     
     return <PageContainer>
         
-        <PageTitle text="Settings" />
 
         <ScrollView contentContainerStyle={styles.formContainer}>
 
             <ProfileImage
-                size={80}
+                size={90}
                 userId={userData.userId}
                 uri={userData.profilePicture}
                 showEditButton={true} />

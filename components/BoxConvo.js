@@ -13,22 +13,18 @@ function formatAmPm(dateString) {
     return hours + ':' + minutes + ' ' + ampm;
   }
 
-  function getRandomColor() {
-    const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
 
 const BoxConvo = props => {
 
-    const { title, subTitle, date, chatName} = props;
+    const { title, subTitle, date, chatName, color} = props;
 
     const dateString = date && formatAmPm(date);
 
-    const randomColor = getRandomColor();
+
 
     return (
         <TouchableWithoutFeedback style={styles.mainContainer} onPress={props.onPress}>
-          <View style={[styles.container, { borderColor: getRandomColor() }]}>
+          <View style={[styles.container, { borderColor: color }]}>
             <View style={styles.header}>
               <Text style={styles.chatName}>{chatName}</Text>
               <Text style={styles.date}>{dateString}</Text>
@@ -46,11 +42,11 @@ const BoxConvo = props => {
         mainContainer:{
         },
       container: {
-        borderWidth: 1,
+        borderWidth: 3,
         borderRadius: 20,
         padding: 10,
         margin: 15,
-        backgroundColor: '#1C2337',
+        backgroundColor: 'white',
         height: 113,
         width: 170
       },
@@ -63,12 +59,12 @@ const BoxConvo = props => {
         fontWeight: 'bold',
         fontSize: 10,
         textAlign: 'left',
-        color: 'white'
+        color: 'black'
       },
       date: {
         fontSize: 10,
         textAlign: 'right',
-        color: 'white'
+        color: 'black'
       },
       content: {
         marginTop: 10,
@@ -79,12 +75,12 @@ const BoxConvo = props => {
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-        color: 'white'
+        color: 'black'
       },
       subtitle: {
         fontSize: 12,
         textAlign: 'center',
-        color: 'white'
+        color: 'black'
       },
     });
     

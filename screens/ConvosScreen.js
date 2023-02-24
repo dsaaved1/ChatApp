@@ -8,14 +8,27 @@ import PageTitle from '../components/PageTitle';
 import { createConvo } from "../utils/actions/chatActions";
 import colors from "../constants/colors";
 import { Ionicons } from '@expo/vector-icons';
-
-
+import { Entypo } from '@expo/vector-icons';
 import DataItem from '../components/DataItem';
+
+
+
+function formatAmPm(dateString) {
+  const date = new Date(dateString);
+  var hours = date.getHours();
+  var minutes = date.getMinutes();
+  var ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  minutes = minutes < 10 ? '0'+minutes : minutes;
+  return hours + ':' + minutes + ' ' + ampm;
+}
+
 
 const ConvosScreen = (props) => {
   const [chatUsers, setChatUsers] = useState([]);
   const chatId = props.route?.params?.chatId;
-  const [convoId, setConvoId] = useState(props.route?.params?.convoId);
+  const [convoId, setConvoId] = useState(props.route?.params?.convoId)
   const storedChats = useSelector(state => state.chats.chatsData);
   const storedUsers = useSelector(state => state.users.storedUsers);
   const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData || {};
@@ -53,25 +66,14 @@ const ConvosScreen = (props) => {
     return otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`;
   }
 
-  function getRandomColor() {
-    const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
-
-
 
   useEffect(() => {
     if (!chatData) return;
 
     const leftTitle = chatData.chatName ?? getChatTitleFromName();
     props.navigation.setOptions({
-      headerTitle: leftTitle,
-      headerTintColor: 'white',
-      headerStyle: {
-        backgroundColor: '#0E1528', 
-      },
       headerLeft: () => {
-          <TouchableOpacity onPress={() => props.navigation.goBack()}>
+         return <TouchableOpacity onPress={() => props.navigation.goBack()}>
             <PageTitle text={leftTitle} />
           </TouchableOpacity>
       },
@@ -82,6 +84,7 @@ const ConvosScreen = (props) => {
             <Item
               title="Chat settings"
               iconName="settings-outline"
+              color='#979797'
               onPress={() => chatData.isGroupChat ?
                 props.navigation.navigate("ChatSettings", { chatId }) :
                 props.navigation.navigate("Contact", { uid: chatUsers.find(uid => uid !== userData.userId) })}
@@ -93,13 +96,8 @@ const ConvosScreen = (props) => {
     setChatUsers(chatData.users)
   }, [chatUsers])
 
-  const handlePressConvo = (convoKey) => {
-    setConvoId(convoKey);
-    props.navigation.navigate("ChatScreen", { convoId: item.key, chatId: chatId, newChatData: chatData });
-  }
 
   const sortedConvos = chatConvos.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-
 
   return <PageContainer>
 
@@ -108,7 +106,7 @@ const ConvosScreen = (props) => {
 
                 <View style={styles.rightContainer}>
 
-                    <TouchableOpacity onPress={() => props.navigation.navigate("NewChat", { isGroupChat: true })} style={styles.button}>
+                    <TouchableOpacity  onPress={() => createConvo(userData.userId,chatData,chatId, '#979797')} style={styles.button}>
                         <Text style={styles.buttonText}>New Convo</Text>
                     </TouchableOpacity>
 
@@ -119,74 +117,33 @@ const ConvosScreen = (props) => {
               data={sortedConvos}
               renderItem= {({ item }) => (
 
-                <View>
-                  <View style={styles.imageContainer}>
-                    
-                  </View>
+                // 
+                <TouchableOpacity onPress={() => props.navigation.navigate("ChatScreen", { convoId: item.key, chatId: chatId, newChatData: chatData })}>
+                  <View style={styles.container}>
+                      <View style={styles.imageContainer}>
+                          <Entypo name="chat" size={35} color={item.color} />
+                      </View>
 
-                  <TouchableOpacity onPress={() => props.navigation.navigate("ChatScreen", { convoId: item.key, chatId: chatId, newChatData: chatData })}>
                       <View style={styles.textContainer}>
-
-                          <Text
-                              numberOfLines={1}
-                              style={styles.title}>
-                              {item.convoName}
-                          </Text>
-
-
-                          <Text
-                              numberOfLines={1}
-                              style={styles.subTitle}>
+                          <View style={styles.titleContainer}>
+                              <Text numberOfLines={1} style={styles.title}>
+                                  {item.convoName}
+                              </Text>
+                              <Text style={styles.updatedAt}>
+                                  {formatAmPm(item.updatedAt)}
+                              </Text>
+                          </View>
+                  
+                          <Text numberOfLines={2} style={styles.subTitle}>
                               {item.latestMessageText}
                           </Text>
-
-
-                      </View>
-                      
-                    </TouchableOpacity>
-                </View>
+                       </View>
+                  </View>
+              </TouchableOpacity>
               )}
               keyExtractor={(item) => item.key}
             />
-    
-      
-        {/* {Object.entries(chatConvos.reduce((obj, convo) => {
-        if (!obj[convo.category]) obj[convo.category] = [];
-        obj[convo.category].push(convo);
-        return obj;
-      }, {})).map(([category, convos]) => (
-        <View style={styles.category}>
-          <Text style={styles.categoryTitle}>{category}</Text>
-          <FlatList
-            horizontal
-            data={convos}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                key={item.key}
-                style={styles.convoContainer}
-                onPress={() => handlePressConvo(item.key)}
-              >
-                  <View style={styles.convo}>
-                    <Text numberOfLines={3} style={styles.convoName}>{item.convoName}</Text>
-                    <Text numberOfLines={3} style={styles.latestAIText}>{item.latestAIText}</Text>
-                    <Text numberOfLines={2} style={styles.latestMessageText}>{item.latestMessageText}</Text>
-                  </View>
-              </TouchableOpacity>
-            )}
-            ListHeaderComponent={
-              <TouchableOpacity
-                keyExtractor={item => item.timestamp}
-                style={styles.card}
-                onPress={() => createConvo(userData.userId,chatData,chatId)}
-              >
-                <View style={styles.cardInner}>
-                  <Ionicons name="ios-add" size={30} color="#fff" />
-                </View>
-              </TouchableOpacity>
-            }
-          />
-        </View>
-))} */}
+  
 
     
     </PageContainer>
@@ -194,23 +151,41 @@ const ConvosScreen = (props) => {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  imageContainer: {
+    marginRight: 10,
+  },
   textContainer: {
+    flex: 1,
     marginLeft: 14,
-    flex: 1
-},
-title: {
-    fontFamily: 'medium',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
     fontSize: 16,
+    fontWeight: 'bold',
+    flex: 1,
     letterSpacing: 0.3,
     color: 'white',
-},
-subTitle: {
+  },
+  subTitle: {
     fontFamily: 'regular',
     color: colors.grey,
     letterSpacing: 0.3,
     fontSize: 12,
     marginTop:5
-},
+  },
+  updatedAt: {
+    fontSize: 12,
+    color: colors.grey,
+  },  
     groupContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',

@@ -178,14 +178,6 @@ const ChatSettingsScreen = props => {
                 />
             }
 
-            
-            {/* <DataItem
-            // this will be for convoSettings because that's how we acess tthe messages in DataListScreen: const { convoId, messageId } = starData;
-                type={"link"}
-                title="Starred messages"
-                hideImage={true}
-                onPress={() => props.navigation.navigate("DataList", { title: "Starred messages", data: Object.values(starredMessages), type: "messages"})}
-            /> */}
 
         </ScrollView>
 

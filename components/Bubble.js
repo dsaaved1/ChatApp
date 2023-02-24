@@ -4,10 +4,11 @@ import colors from '../constants/colors';
 import { Menu, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-menu';
 import uuid from 'react-native-uuid';
 import * as Clipboard from 'expo-clipboard';
+import userImage from '../assets/images/userImage.jpeg';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import { starMessage } from '../utils/actions/chatActions';
 import { useSelector } from 'react-redux';
-import { updateConvoColorMap } from "../utils/actions/chatActions";
+
 
 function formatAmPm(dateString) {
     const date = new Date(dateString);
@@ -20,10 +21,7 @@ function formatAmPm(dateString) {
     return hours + ':' + minutes + ' ' + ampm;
   }
 
-  function getRandomColor() {
-    const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
+
 
 const MenuItem = props => {
 
@@ -38,47 +36,26 @@ const MenuItem = props => {
 }
 
 
-let colorMap = {};
 
 const Bubble = props => {
-    const { text, type, messageId, chatId, convoId, userId, date, setReply, replyingTo, name, senderID, convoData, imageUrl } = props;
+    const { text, type, messageId, chatId, convoId, userId, date, setReply, replyingTo, name, senderID, uri, imageUrl } = props;
    
     let colorBorder;
-    //attempted to assign to read only property
-    //const colorMap = convoData.colorMap
 
     if (userId == senderID){
         colorBorder = "#FF5366"
-    } else if (colorMap[senderID]){
-        colorBorder = colorMap[senderID]
     } else {
-        const color = getRandomColor()
-        colorMap[senderID] = color
+        const color = colors.primary
+        colorBorder = color
     }
 
   
-
-    //Failed to store colors per convo
-    // if (convoData) {
-    //     const senderIndexColor = convoData.userMap.indexOf(senderID);
-    //     if (senderIndexColor !== -1) {
-    //         console.log("here same color")
-    //         colorBorder = convoData.colorMap[senderIndexColor]
-    //     }else{
-    //         const newColor = getRandomColor();
-    //         colorBorder = newColor
-    //         console.log("here assigning new color")
-
-    //         //updateConvoColorMap(chatId,convoData, senderID, newColor)
-    //     }
-
-    // }
-    
+    const image = uri ?  { uri: uri } : userImage;
 
     const starredMessages = useSelector(state => state.messages.starredMessages[convoId] ?? {});
     const storedUsers = useSelector(state => state.users.storedUsers);
 
-    const bubbleStyle = { 
+    const bubbleStyle = {
         ...styles.container,      
         shadowColor: '#000',
         shadowOffset: {
@@ -89,6 +66,7 @@ const Bubble = props => {
         shadowRadius: 2.22,
         elevation: 3,
      };
+
     const textStyle = { ...styles.text };
     const wrapperStyle = { ...styles.wrapperStyle }
 
@@ -118,20 +96,20 @@ const Bubble = props => {
             break;
         case "myMessage":
             wrapperStyle.justifyContent = 'flex-end';
-            bubbleStyle.backgroundColor = '#1C2331';
+            bubbleStyle.backgroundColor = 'white';
             bubbleStyle.maxWidth = '65%';
             textStyle.fontFamily = 'regular';
             Container = TouchableWithoutFeedback;
             isUserMessage = true;
             textStyle.fontSize = 14;
-            textStyle.color = 'white';
+            textStyle.color = 'black';
             bubbleStyle.borderColor = colorBorder;
             break;
         case "theirMessage":
             wrapperStyle.justifyContent = 'flex-start';
             bubbleStyle.maxWidth = '65%';
-            bubbleStyle.backgroundColor = '#1C2331';
-            textStyle.color = 'white';
+            bubbleStyle.backgroundColor = 'white';
+            textStyle.color = 'black';
             textStyle.fontFamily = 'regular';
             Container = TouchableWithoutFeedback;
             isUserMessage = true;
@@ -168,61 +146,68 @@ const Bubble = props => {
     return (
         <View style={wrapperStyle}>
             <Container onLongPress={() => menuRef.current.props.ctx.menuActions.openMenu(id.current)} style={{ width: '100%' }}>
-                <View style={bubbleStyle}>
+                <View>
+                    <View style={styles.profileContainer}>
+                        <Image source={image} style={styles.profilePicture} />
+                    </View>
+                    <View style={bubbleStyle}>
 
-                    {
-                        name && type !== "info" &&
-                        <Text style={{...styles.name, color: colorBorder}}>{name}</Text>
-                    }
+                        
 
-                    {
-                        replyingToUser &&
-                        <Bubble
-                            type='reply'
-                            text={replyingTo.text}
-                            name={`${replyingToUser.firstName} ${replyingToUser.lastName}`}
-                        />
-                    }
+                        {
+                            name && type !== "info" &&
+                            <Text style={{...styles.name, color: colorBorder}}>{name}</Text>
+                        }
 
-                    {
-                        imageUrl &&
-                        <Image source={{ uri: imageUrl }} style={styles.image} />
-                    }
+                        {
+                            replyingToUser &&
+                            <Bubble
+                                type='reply'
+                                text={replyingTo.text}
+                                name={`${replyingToUser.firstName} ${replyingToUser.lastName}`}
+                            />
+                        }
 
-                    {
-                        !imageUrl &&
-                        <View>
-                            <Text style={textStyle}>
-                                {text}
-                            </Text>
+                        {
+                            imageUrl &&
+                            <Image source={{ uri: imageUrl }} style={styles.image} />
+                        }
+
+                        {
+                            !imageUrl &&
                             <View>
+                                <Text style={textStyle}>
+                                    {text}
+                                </Text>
+                                <View>
 
+                                </View>
                             </View>
+                        }
+
+                        
+
+                        
+                    {
+                        dateString && type !== "info" && <View style={styles.timeContainer}>
+                            { isStarred && <FontAwesome name='star' size={14} color={'#8E8E93'} style={{ marginRight: 5 }} /> }
+                            <Text style={styles.time}>{dateString}</Text>
                         </View>
                     }
 
-                    
+                    <Menu name={id.current} ref={menuRef}>
+                        <MenuTrigger />
 
-                    
-                {
-                    dateString && type !== "info" && <View style={styles.timeContainer}>
-                        { isStarred && <FontAwesome name='star' size={14} color={'#8E8E93'} style={{ marginRight: 5 }} /> }
-                        <Text style={styles.time}>{dateString}</Text>
+                        <MenuOptions>
+                            <MenuItem text='Copy to clipboard' icon={'copy'} onSelect={() => copyToClipboard(text)} />
+                            <MenuItem text={`${isStarred ? 'Unstar' : 'Star'} message`} icon={isStarred ? 'star-o' : 'star'} iconPack={FontAwesome} onSelect={() => starMessage(messageId, convoId, userId, chatId)} />
+                            <MenuItem text='Reply' icon='arrow-left-circle' onSelect={setReply} />
+                            
+                        </MenuOptions>
+                    </Menu>
+
+
                     </View>
-                }
-
-                <Menu name={id.current} ref={menuRef}>
-                    <MenuTrigger />
-
-                    <MenuOptions>
-                        <MenuItem text='Copy to clipboard' icon={'copy'} onSelect={() => copyToClipboard(text)} />
-                        <MenuItem text={`${isStarred ? 'Unstar' : 'Star'} message`} icon={isStarred ? 'star-o' : 'star'} iconPack={FontAwesome} onSelect={() => starMessage(messageId, convoId, userId, chatId)} />
-                        <MenuItem text='Reply' icon='arrow-left-circle' onSelect={setReply} />
-                        
-                    </MenuOptions>
-                </Menu>
-
-
                 </View>
             </Container>
         </View>
@@ -238,11 +223,18 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         padding: 5,
         marginBottom: 10,
-        borderWidth: 1,
+        borderWidth: 2,
     },
+    profileContainer: {
+        marginRight: 15,
+      },
+      profilePicture: {
+        width: 33,
+        height: 33,
+        borderRadius: 10,
+      },
     text: {
         letterSpacing: 0.3,
-        //paddingBottom:5,
         paddingLeft:5,
     },
     menuItemContainer: {
