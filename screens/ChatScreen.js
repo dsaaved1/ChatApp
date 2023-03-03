@@ -208,6 +208,7 @@ const ChatScreen = (props) => {
   }, [tempImageUri]);
 
 
+  // I don't want the user to send images for now.
 
   // const uploadImage = useCallback(async () => {
   //   setIsLoading(true);
@@ -338,7 +339,10 @@ const ChatScreen = (props) => {
 
         <View style={styles.inputContainer}>
 
-{/*                   
+{/*              
+
+I don't want the user to send images for now.
+
         {!(activeMain && messageText !== "") && (
           <TouchableOpacity
             style={styles.mediaButton}
@@ -419,7 +423,8 @@ const ChatScreen = (props) => {
             </TouchableOpacity>
           )}
 
-            <AwesomeAlert
+            
+            {/* <AwesomeAlert
               show={tempImageUri !== ""}
               title='Send image?'
               closeOnTouchOutside={true}
@@ -446,7 +451,7 @@ const ChatScreen = (props) => {
                   }
                 </View>
               )}
-            />
+            /> */}
 
 
         </View>

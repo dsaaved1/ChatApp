@@ -131,7 +131,7 @@ const createUser = async (firstName, lastName, email, userId) => {
     const newChatData = {
             users: [userId],
             isGroupChat: false,
-            chatName: "My Personal Chat",
+            chatName: "My Chat",
             createdBy: userId,
             updatedBy: userId,
             createdAt: new Date().toISOString(),
@@ -143,7 +143,7 @@ const createUser = async (firstName, lastName, email, userId) => {
 
     const convoData = {
         convoName:  "Convo",
-        chat: 'My Personal Chat',
+        chat: 'My Chat',
         chatId: newChat.key,
         createdBy: userId,
         updatedBy: userId,
