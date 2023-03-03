@@ -21,6 +21,10 @@ function formatAmPm(dateString) {
     return hours + ':' + minutes + ' ' + ampm;
   }
 
+  function getRandomColor() {
+    const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
 
 
 const MenuItem = props => {
@@ -35,22 +39,24 @@ const MenuItem = props => {
     </MenuOption>
 }
 
-
+let colorMap = {};
 
 const Bubble = props => {
-    const { text, type, messageId, chatId, convoId, userId, date, setReply, replyingTo, name, senderID, uri, imageUrl } = props;
+    const { text, type, messageId, chatId, convoId, userId, date, setReply, replyingTo, name, senderID, imageUrl } = props;
    
     let colorBorder;
 
     if (userId == senderID){
         colorBorder = "#FF5366"
+    } else if (colorMap[senderID]){
+        colorBorder = colorMap[senderID]
     } else {
-        const color = colors.primary
-        colorBorder = color
+        const color = getRandomColor()
+        colorMap[senderID] = color
     }
 
   
-    const image = uri ?  { uri: uri } : userImage;
+    
 
     const starredMessages = useSelector(state => state.messages.starredMessages[convoId] ?? {});
     const storedUsers = useSelector(state => state.users.storedUsers);
@@ -96,20 +102,20 @@ const Bubble = props => {
             break;
         case "myMessage":
             wrapperStyle.justifyContent = 'flex-end';
-            bubbleStyle.backgroundColor = 'white';
+            bubbleStyle.backgroundColor = '#1C2331';
             bubbleStyle.maxWidth = '65%';
             textStyle.fontFamily = 'regular';
             Container = TouchableWithoutFeedback;
             isUserMessage = true;
             textStyle.fontSize = 14;
-            textStyle.color = 'black';
+            textStyle.color = 'white';
             bubbleStyle.borderColor = colorBorder;
             break;
         case "theirMessage":
             wrapperStyle.justifyContent = 'flex-start';
             bubbleStyle.maxWidth = '65%';
-            bubbleStyle.backgroundColor = 'white';
-            textStyle.color = 'black';
+            bubbleStyle.backgroundColor = '#1C2331';
+            textStyle.color = 'white';
             textStyle.fontFamily = 'regular';
             Container = TouchableWithoutFeedback;
             isUserMessage = true;
@@ -146,11 +152,9 @@ const Bubble = props => {
     return (
         <View style={wrapperStyle}>
             <Container onLongPress={() => menuRef.current.props.ctx.menuActions.openMenu(id.current)} style={{ width: '100%' }}>
-                <View>
-                    <View style={styles.profileContainer}>
-                        <Image source={image} style={styles.profilePicture} />
-                    </View>
-                    <View style={bubbleStyle}>
+               
+                    
+                <View style={bubbleStyle}>
 
                         
 
@@ -207,8 +211,8 @@ const Bubble = props => {
                     </Menu>
 
 
-                    </View>
                 </View>
+                
             </Container>
         </View>
     )
@@ -225,14 +229,6 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 2,
     },
-    profileContainer: {
-        marginRight: 15,
-      },
-      profilePicture: {
-        width: 33,
-        height: 33,
-        borderRadius: 10,
-      },
     text: {
         letterSpacing: 0.3,
         paddingLeft:5,

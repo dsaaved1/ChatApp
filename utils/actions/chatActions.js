@@ -65,6 +65,14 @@ export const sendTextMessage = async (convoId, chatId, senderData, messageText, 
     await sendPushNotificationForUsers(otherUsers, `${senderData.firstName} ${senderData.lastName}`, messageText, chatId, convoId);
 }
 
+export const sendMainMessage = async (convoId, chatId, senderData, messageText, replyTo, chatUsers) => {
+    console.log("here before asking")
+    await sendMessage(convoId, chatId, senderData.userId, messageText, null, replyTo, "main");
+
+    const otherUsers = chatUsers.filter(uid => uid !== senderData.userId);
+    await sendPushNotificationForUsers(otherUsers, `${senderData.firstName} ${senderData.lastName}`, messageText, chatId, convoId);
+}
+
 export const sendInfoMessage = async (chatId, senderId, messageText) => {
     await sendMessage(chatId, senderId, messageText, null, null, "info");
 }

@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 28,
-        color: 'black',
+        color: 'white',
         fontFamily: 'bold',
         letterSpacing: 0.3
     }

@@ -22,22 +22,22 @@ const ChatListScreen = props => {
     const userChats = useSelector(state => {
         const chatsData = state.chats.chatsData;
         
-        //is not loading for chatScreen when you create new Chat
-        Object.values(chatsData).forEach(chat => {
-            const convosData = useSelector(state => state.convos.convosData[chat.key])
-            for (const key in convosData){
-                const convoData = convosData[key]
-                userConvos.push({
-                    //you add key as part of new object!!
-                    key,
-                    ...convoData
-                })
-            }
-          }); 
-          //I don't know if this is efficient
-          userConvos.sort((a, b) => {
-            return new Date(b.updatedAt) - new Date(a.updatedAt);
-          });
+        // //is not loading for chatScreen when you create new Chat
+        // Object.values(chatsData).forEach(chat => {
+        //     const convosData = useSelector(state => state.convos.convosData[chat.key])
+        //     for (const key in convosData){
+        //         const convoData = convosData[key]
+        //         userConvos.push({
+        //             //you add key as part of new object!!
+        //             key,
+        //             ...convoData
+        //         })
+        //     }
+        //   }); 
+        //   //I don't know if this is efficient
+        //   userConvos.sort((a, b) => {
+        //     return new Date(b.updatedAt) - new Date(a.updatedAt);
+        //   });
 
         
 
@@ -46,12 +46,16 @@ const ChatListScreen = props => {
         });
     });
 
-    const latestConvos = userConvos.slice(0, 8);
+    //const latestConvos = userConvos.slice(0, 8);
 
     
     
     useEffect(() => {
+        
         props.navigation.setOptions({
+            headerStyle: {
+                backgroundColor: '#0E1528', 
+              },
             headerLeft: () => {
                 return <PageTitle text="  Home" />
             }
@@ -110,10 +114,9 @@ const ChatListScreen = props => {
 
             <Text  style={[styles.groupText, { paddingVertical: 10 }]}>Continue Working</Text>
 
-            <FlatList
+            {/* <FlatList
                 data={latestConvos}
                 renderItem={(itemData) => {
-                    //console.log("User chats: ", userChats)
                     const convoData = itemData.item;
                     const convoId = convoData.key
                     const chatId = convoData.chatId
@@ -132,7 +135,7 @@ const ChatListScreen = props => {
                 pagingEnabled
                 bounces={false}
 
-            /> 
+            />  */}
 
             <View style={styles.groupContainer}>
                 <Text style={styles.groupText}>Groups</Text>
@@ -158,7 +161,7 @@ const ChatListScreen = props => {
                     const isGroupChat = chatData.isGroupChat;
 
                     let title = "";
-                    let subTitle = `${chatData.latestConvo}: ${chatData.latestMessageText}` || "New chat";
+                    //let subTitle = `${chatData.latestConvo}: ${chatData.latestMessageText}` || "New chat";
                     let image = "";
 
                     if (isGroupChat) {
@@ -184,7 +187,7 @@ const ChatListScreen = props => {
 
                     return <DataItem
                                 title={title}
-                                subTitle={subTitle}
+                                //subTitle={subTitle}
                                 image={image}
                                 onPress={() => props.navigation.navigate("Convos", { chatId })}
                             />

@@ -112,7 +112,50 @@ export const updateSignedInUserData = async (userId, newData) => {
     const childRef = child(dbRef, `users/${userId}`);
     await update(childRef, newData);
 
+}
 
+const createUser = async (firstName, lastName, email, userId) => {
+    const firstLast = `${firstName} ${lastName}`.toLowerCase();
+    const userData = {
+        firstName,
+        lastName,
+        firstLast,
+        email,
+        userId,
+        signUpDate: new Date().toISOString()
+    };
+
+    const dbRef = ref(getDatabase());
+    const childRef = child(dbRef, `users/${userId}`);
+    await set(childRef, userData);
+    const newChatData = {
+            users: [userId],
+            isGroupChat: false,
+            chatName: "My Personal Chat",
+            createdBy: userId,
+            updatedBy: userId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        
+    };
+    const newChat = await push(child(dbRef, 'chats'), newChatData);
+    await push(child(dbRef, `userChats/${userId}`), newChat.key);
+
+    const convoData = {
+        convoName:  "Convo",
+        chat: 'My Personal Chat',
+        chatId: newChat.key,
+        createdBy: userId,
+        updatedBy: userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        color: 'white'
+    };
+
+    const newConvo = child(dbRef, `convos/${newChat.key}`);
+    const convoKey = await push(newConvo, convoData);
+
+     child(dbRef, `messages/${convoKey.key}`);
     
 
     return userData;

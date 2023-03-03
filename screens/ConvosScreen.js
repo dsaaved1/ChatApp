@@ -12,6 +12,10 @@ import { Entypo } from '@expo/vector-icons';
 import DataItem from '../components/DataItem';
 
 
+function getRandomColor() {
+  const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
 function formatAmPm(dateString) {
   const date = new Date(dateString);
@@ -72,6 +76,9 @@ const ConvosScreen = (props) => {
 
     const leftTitle = chatData.chatName ?? getChatTitleFromName();
     props.navigation.setOptions({
+      headerStyle: {
+        backgroundColor: '#0E1528', 
+      },
       headerLeft: () => {
          return <TouchableOpacity onPress={() => props.navigation.goBack()}>
             <PageTitle text={leftTitle} />
@@ -106,7 +113,7 @@ const ConvosScreen = (props) => {
 
                 <View style={styles.rightContainer}>
 
-                    <TouchableOpacity  onPress={() => createConvo(userData.userId,chatData,chatId, '#979797')} style={styles.button}>
+                    <TouchableOpacity  onPress={() => createConvo(userData.userId,chatData,chatId, getRandomColor())} style={styles.button}>
                         <Text style={styles.buttonText}>New Convo</Text>
                     </TouchableOpacity>
 

@@ -59,6 +59,9 @@ const SettingsScreen = props => {
 
     useEffect(() => {
         props.navigation.setOptions({
+            headerStyle: {
+                backgroundColor: '#0E1528', 
+              },
             headerLeft: () => {
                 return <PageTitle text="  Settings" />
             }
