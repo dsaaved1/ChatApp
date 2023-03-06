@@ -17,37 +17,12 @@ const ChatListScreen = props => {
 
     const userData = useSelector(state => state.auth.userData);
     const storedUsers = useSelector(state => state.users.storedUsers);
-    const userConvos = []
     const userChats = useSelector(state => {
         const chatsData = state.chats.chatsData;
-        
-        
-        // Object.values(chatsData).forEach(chat => {
-        //     const convosData = useSelector(state => state.convos.convosData[chat.key])
-        //     for (const key in convosData){
-        //         const convoData = convosData[key]
-        //         userConvos.push({
-        //             //you add key as part of new object!!
-        //             key,
-        //             ...convoData
-        //         })
-        //     }
-        //   }); 
-        //   
-        //   userConvos.sort((a, b) => {
-        //     return new Date(b.updatedAt) - new Date(a.updatedAt);
-        //   });
-
-        
-
         return Object.values(chatsData).sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
     });
-
-    const latestConvos = userConvos.slice(0, 8);
-
-    
     
     useEffect(() => {
         
@@ -101,7 +76,7 @@ const ChatListScreen = props => {
 
         props.navigation.navigate("ChatScreen", navigationProps)
 
-        //most likely this is causing prevDeps.length is undefined
+       
     }, [props.route?.params])
 
 
@@ -110,31 +85,6 @@ const ChatListScreen = props => {
 
 
             <View>
-
-                <Text  style={[styles.groupText, { paddingVertical: 10 }]}>Continue Working</Text>
-
-                {/* <FlatList
-                    data={latestConvos}
-                    renderItem={(itemData) => {
-                        const convoData = itemData.item;
-                        const convoId = convoData.key
-                        const chatId = convoData.chatId
-
-                    return <BoxConvo
-                                title={convoData.convoName}
-                                subTitle={convoData.latestMessageText}
-                                date={convoData.updatedAt}
-                                chatName={convoData.chat}
-                                color={convoData.color}
-                                onPress={() => props.navigation.navigate("ChatScreen", { chatId, convoId })}
-                            />
-                    }}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    pagingEnabled
-                    bounces={false}
-
-                />  */}
 
                 <View style={styles.groupContainer}>
                     <Text style={styles.groupText}>Groups</Text>
@@ -160,7 +110,7 @@ const ChatListScreen = props => {
                         const isGroupChat = chatData.isGroupChat;
 
                         let title = "";
-                        //let subTitle = `${chatData.latestConvo}: ${chatData.latestMessageText}` || "New chat";
+                        let subTitle = `${chatData.latestConvo}: ${chatData.latestMessageText}` || "New chat";
                         let image = "";
 
                         if (isGroupChat) {
@@ -187,7 +137,7 @@ const ChatListScreen = props => {
 
                         return <DataItem
                                     title={title}
-                                    //subTitle={subTitle}
+                                    subTitle={subTitle}
                                     image={image}
                                     onPress={() => props.navigation.navigate("Convos", { chatId })}
                                 />

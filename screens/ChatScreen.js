@@ -44,7 +44,6 @@ const ChatScreen = (props) => {
   const [activeMain, setActiveMain] = useState(false);
   const [tempImageUri, setTempImageUri] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [editing, setEditing] = useState(false)
 
 
   //we use this to create a reference to component
@@ -54,11 +53,12 @@ const ChatScreen = (props) => {
   const userData = useSelector(state => state.auth.userData);
   const storedUsers = useSelector(state => state.users.storedUsers);
   const storedChats = useSelector(state => state.chats.chatsData);
-  //chatData is null when we don't a chatID because we haven't started a conversation yet
   const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData || {};
-  const convoRef = (chatId && useSelector(state => state.convos.convosData[chatId])) || {};
-  const convoData = convoRef[convoId]
-  const [title, setTitle] = useState(convoData ? convoData.convoName : "Convo");
+
+  // const convoRef = (chatId && useSelector(state => state.convos.convosData[chatId])) || {};
+  // const convoData = convoRef[convoId]
+  // const [title, setTitle] = useState(convoData ? convoData.convoName : "Convo");
+  // const [editing, setEditing] = useState(false)
 
   const chatMessages = useSelector(state => {
     if (!convoId) return [];
@@ -99,7 +99,7 @@ const ChatScreen = (props) => {
     props.navigation.setOptions({
       headerTitle: () => (
         <View style={{ alignItems: 'center', margin: 5 }}>
-          {editing?
+          {/* {editing?
            <TextInput style={{ color: 'white', fontSize: 20, fontWeight: 'medium' }}
            autoFocus={true}
            onChangeText={text => setTitle(text)}
@@ -108,7 +108,7 @@ const ChatScreen = (props) => {
           <Text style={{ color: 'white', fontSize: 20, fontWeight: 'medium' }}>
             {title}
           </Text>
-          }
+          } */}
           <Text style={{ color: '#979797', fontSize: 12, fontWeight: 'regular' }}>
             {subTitle}
           </Text>
@@ -117,30 +117,30 @@ const ChatScreen = (props) => {
       headerStyle: {
         backgroundColor: '#0E1528', 
       },
-      headerRight: modifiable ? 
-    () => {
-      if (editing) {
-        return (
-          <TouchableOpacity onPress={() => {
-            updateConvoName(convoId,chatId,title);
-            setEditing(false);
-          }}>
-            <AntDesign name="checkcircleo" size={24} color='#979797'/>
-          </TouchableOpacity>
-        );
-      } else {
-        return (
-          <TouchableOpacity onPress={() => setEditing(true)}>
-            <Feather name="edit-3" size={24} color='#979797' />
-          </TouchableOpacity>
-        );
-        }
-    } : null
+    //   headerRight: modifiable ? 
+    // () => {
+    //   if (editing) {
+    //     return (
+    //       <TouchableOpacity onPress={() => {
+    //         updateConvoName(convoId,chatId,title);
+    //         setEditing(false);
+    //       }}>
+    //         <AntDesign name="checkcircleo" size={24} color='#979797'/>
+    //       </TouchableOpacity>
+    //     );
+    //   } else {
+    //     return (
+    //       <TouchableOpacity onPress={() => setEditing(true)}>
+    //         <Feather name="edit-3" size={24} color='#979797' />
+    //       </TouchableOpacity>
+    //     );
+    //     }
+    // } : null
 
     })
     setChatUsers(chatData.users)
     //editing is passed because I wanted to be the page reload after editing is change inside useEffect
-  }, [chatUsers,editing, title])
+  }, [chatUsers])
 
 
 

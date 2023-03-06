@@ -151,8 +151,6 @@ const ConvosScreen = (props) => {
               keyExtractor={(item) => item.key}
             />
   
-
-    
     </PageContainer>
   
 }

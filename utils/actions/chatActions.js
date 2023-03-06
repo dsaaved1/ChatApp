@@ -24,9 +24,7 @@ export const createChat = async (loggedInUserId, chatData) => {
     for (let i = 0; i < chatUsers.length; i++) {
         const userId = chatUsers[i];
         await push(child(dbRef, `userChats/${userId}`), newChat.key);
-        //await push(child(dbRef, `userGroups/${userId}`), newGroup.key);
     }
-    console.log("should not log 5")
 
     return newChat.key;
 }
@@ -49,7 +47,7 @@ export const createConvo = async (loggedInUserId, chatData, chatId, color) => {
         updatedBy: loggedInUserId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        color: color,
+        color: color ? color : "#000000",
     };
    
     const convoKey = await push(convosRef, convoData);
@@ -169,7 +167,7 @@ const sendMessage = async (convoId, chatId, senderId, messageText, imageUrl, rep
     await update(chatRef, {
         updatedBy: senderId,
         updatedAt: new Date().toISOString(),
-        latestConvo: convoSnapshot.val().convoName,
+        latestConvo: convoSnapshot.val().convoName ? convoSnapshot.val().convoName : "Untitled",
         latestMessageText: messageText
     });
 }
