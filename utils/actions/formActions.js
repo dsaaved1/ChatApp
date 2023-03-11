@@ -1,8 +1,12 @@
-import { validateEmail, validateLength, validatePassword, validateString } from '../validationConstraints';
+import { validateUsername, validateEmail, validateLength, validatePassword, validateString } from '../validationConstraints';
 
 export const validateInput = (inputId, inputValue) => {
+
     if (inputId === "firstName" || inputId === "lastName") {
         return validateString(inputId, inputValue)
+    }
+    else if (inputId === "username"){
+        return validateUsername(inputId, inputValue)
     }
     else if (inputId === "email") {
         return validateEmail(inputId, inputValue)

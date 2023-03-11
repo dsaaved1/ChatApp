@@ -4,6 +4,10 @@ import { getFirebaseApp } from "../firebaseHelper";
 import { getUserPushTokens } from "./authActions";
 import { addUserChat, deleteUserChat, getUserChats } from "./userActions";
 
+function getRandomColor() {
+    const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', '#3F22EC', '#FF6EFF', '#FF9933'];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
 
 
 export const createChat = async (loggedInUserId, chatData) => {
@@ -47,7 +51,7 @@ export const createConvo = async (loggedInUserId, chatData, chatId, color) => {
         updatedBy: loggedInUserId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        color: color ? color : "#000000",
+        color: color ? color : getRandomColor(),
     };
    
     const convoKey = await push(convosRef, convoData);

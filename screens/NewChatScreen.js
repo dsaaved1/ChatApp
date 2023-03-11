@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput, ActivityIndicator, FlatList,  TouchableOpacity } from 'react-native';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 import CustomHeaderButton from '../components/CustomHeaderButton';
 import PageContainer from '../components/PageContainer';
@@ -22,6 +22,7 @@ const NewChatScreen = props => {
     const [searchTerm, setSearchTerm] = useState('');
     const [chatName, setChatName] = useState("");
     const [selectedUsers, setSelectedUsers] = useState([]);
+    const [text, setText] = useState("")
 
     const userData = useSelector(state => state.auth.userData);
     const storedUsers = useSelector(state => state.users.storedUsers);
@@ -37,6 +38,16 @@ const NewChatScreen = props => {
 
     useEffect(() => {
         props.navigation.setOptions({
+            headerTitle: () => (
+                <View style={{ alignItems: 'center', margin: 5 }}>
+                  <Text style={{ color: 'white', fontSize: 18, fontWeight: 'medium' }}>
+                     {isGroupChat ? "Add participants" : "New chat"}
+                  </Text>
+                </View>
+              ),
+            headerStyle: {
+                backgroundColor: '#0E1528', 
+              },
             headerLeft: () => {
                 return <HeaderButtons HeaderButtonComponent={CustomHeaderButton}>
                     <Item
@@ -63,7 +74,6 @@ const NewChatScreen = props => {
                     }
                 </HeaderButtons>
             },
-            headerTitle: isGroupChat ? "Add participants" : "New chat"
         })
     }, [chatName, selectedUsers]);
 
@@ -78,6 +88,7 @@ const NewChatScreen = props => {
             setIsLoading(true);
 
             const usersResult = await searchUsers(searchTerm);
+            console.log(usersResult)
             delete usersResult[userData.userId];
             setUsers(usersResult);
 
@@ -121,6 +132,7 @@ const NewChatScreen = props => {
                             <TextInput 
                                 style={styles.textbox}
                                 placeholder="Enter a name for your chat"
+                                placeholderTextColor="grey"
                                 autoCorrect={false}
                                 //autoComplete={false} doesn't work on Android for some reason
                                 onChangeText={text => setChatName(text)}
@@ -162,10 +174,17 @@ const NewChatScreen = props => {
 
             <TextInput
                 placeholder='Search'
+                autoCapitalize="none"
                 style={styles.searchBox}
-                onChangeText={(text) => setSearchTerm(text)}
+                onChangeText={(txt) => setText(txt)}
             />
         </View>
+
+
+        <TouchableOpacity style={styles.button} onPress={() => setSearchTerm(text)}>
+            <Text style={styles.text}>Search username</Text>
+        </TouchableOpacity>
+
 
         {
             isLoading && 
@@ -187,8 +206,8 @@ const NewChatScreen = props => {
                     }
 
                     return <DataItem
-                                title={`${userData.firstName} ${userData.lastName}`}
-                                subTitle={userData.about}
+                                title={userData.username}
+                                subTitle={`${userData.firstName} ${userData.lastName}`}
                                 image={userData.profilePicture}
                                 onPress={() => userPressed(userId)}
                                 type={isGroupChat ? "checkbox" : ""}
@@ -243,6 +262,19 @@ const styles = StyleSheet.create({
         fontSize: 15,
         width: '100%'
     },
+    button: {
+        backgroundColor: 'grey',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginVertical: 10
+      },
+      text: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+      },
     noResultsIcon: {
         marginBottom: 20
     },
