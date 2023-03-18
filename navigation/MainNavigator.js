@@ -9,6 +9,10 @@ import SettingsScreen from "../screens/SettingsScreen";
 import ChatListScreen from "../screens/ChatListScreen";
 import ChatScreen from "../screens/ChatScreen";
 import NewChatScreen from "../screens/NewChatScreen";
+import ContactScreen from "../screens/ContactScreen";
+import DataListScreen from "../screens/DataListScreen";
+import ConvosScreen from '../screens/ConvosScreen';
+
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useDispatch, useSelector } from "react-redux";
 import { getFirebaseApp } from "../utils/firebaseHelper";
@@ -20,13 +24,30 @@ import colors from "../constants/colors";
 import commonStyles from "../constants/commonStyles";
 import { setStoredUsers } from "../store/userSlice";
 import { setChatMessages, setStarredMessages } from "../store/messagesSlice";
-import ContactScreen from "../screens/ContactScreen";
-import DataListScreen from "../screens/DataListScreen";
 import { StackActions, useNavigation } from '@react-navigation/native';
-import ConvosScreen from '../screens/ConvosScreen';
+
+
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+
+const Drawer = createDrawerNavigator();
+const DrawerNavigator = () => {
+  return (
+    
+      <Drawer.Navigator screenOptions={{
+        headerTitle: "",
+        headerShadowVisible: false  
+      }}>
+        <Drawer.Screen name="ChatList" component={ChatListScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+      </Drawer.Navigator>
+    
+  );
+}
 
 const TabNavigator = () => {
   return (
@@ -67,7 +88,7 @@ const StackNavigator = () => {
       <Stack.Group>
         <Stack.Screen
           name="Home"
-          component={TabNavigator}
+          component={DrawerNavigator}
           options={{ headerShown: false }}
         />
         <Stack.Screen

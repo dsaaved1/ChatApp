@@ -152,6 +152,12 @@ const ChatScreen = (props) => {
       if (!id) {
         console.log("about to create a chat")
         // No chat Id. Create the chat
+        
+        // await client.createChannelType({
+        //   name: 'public',
+        //   mutes: false,
+        //   reactions: false,
+        // });
         id = await createChat(userData.userId, chatData);
       
         setChatId(id);

@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import { LogBox, StyleSheet, Text } from "react-native";
+import { LogBox, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from "react";
@@ -10,6 +10,14 @@ import { store } from './store/store';
 import { MenuProvider } from 'react-native-popup-menu';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
+import { StreamChat } from "stream-chat";
+import { OverlayProvider, Chat, ChannelList, Channel, MessageList, MessageInput } from 'stream-chat-expo';
+import AuthContext  from './navigation/AuthContext';
+
+
+const API_KEY = "a89tc8x6a9zy";
+const client = StreamChat.getInstance(API_KEY);
+
 LogBox.ignoreLogs(['AsyncStorage has been extracted']);
 //AsyncStorage.clear();
 
@@ -18,6 +26,9 @@ SplashScreen.preventAutoHideAsync();
 export default function App() {
 
   const [appIsLoaded, setAppIsLoaded] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState(null)
+
+
 
   useEffect(() => {
     
@@ -48,7 +59,17 @@ export default function App() {
     };
 
     prepare();
+    //connectUser();
+    return () => {
+      // this is executed when component unmounts
+      client.disconnectUser();
+    }
   }, []);
+
+  const onChannelSelect = (channel) => {
+    setSelectedChannel(channel)
+  }
+
 
   const onLayout = useCallback(async () => {
     if (appIsLoaded) {
@@ -60,19 +81,43 @@ export default function App() {
     return null;
   }
 
-  return (
-    <Provider store={store}>
-      <SafeAreaProvider
-        style={styles.container}
-        onLayout={onLayout}>
+ 
+      return (
+        
+<Provider store={store}>
+          <SafeAreaProvider
+            style={styles.container}
+            onLayout={onLayout}>
 
-          <MenuProvider>
-            <AppNavigator />
-          </MenuProvider>
-
-      </SafeAreaProvider>
-    </Provider>
-  );
+              
+            <AuthContext>
+                <OverlayProvider>
+                  <Chat client={client}>
+                    {/* {!selectedChannel ? (
+                      <ChannelList onSelect={onChannelSelect}/>
+                    ):(
+                      //channel takes whole page
+                      <Channel channel={selectedChannel}>
+                        
+                        <Text style={{marginTop:20, backgroundColor:'red'}} onPress={() => setSelectedChannel(null)}>Back</Text>
+                        <MessageList/>
+                        <MessageInput/>
+                      </Channel>
+                    
+                    )}
+                    */}
+                    
+                    <MenuProvider>
+                        <AppNavigator />
+                    </MenuProvider>
+                    
+                  </Chat>
+                </OverlayProvider>
+              </AuthContext>
+          </SafeAreaProvider>
+          </Provider>
+      );
+  
 }
 
 const styles = StyleSheet.create({

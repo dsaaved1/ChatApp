@@ -27,19 +27,53 @@ const initialState = {
     formIsValid: false
 }
 
-const SignUpForm = props => {
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useChatContext } from 'stream-chat-expo';
+import { useAuthContext } from "../navigation/AuthContext";
+import {
+    Pressable,
+    ScrollView,
+  } from "react-native";
+//we need to import this even though we don't use it
+import AppNavigator from '../navigation/AppNavigator';
+
+const SignUpForm = (props) => {
 
     const dispatch = useDispatch();
 
     const [error, setError] = useState();
     const [isLoading, setIsLoading] = useState(false);
-    const [formState, dispatchFormState] = useReducer(reducer, initialState);
-    const [username, setUsername] = useState("");
+    const [formState, dispatchFormState] = useReducer(reducer);
 
-    const inputChangedHandler = useCallback((inputId, inputValue) => {
-        const result = validateInput(inputId, inputValue);
-        dispatchFormState({ inputId, validationResult: result, inputValue })
-    }, [dispatchFormState]);
+    const [username, setUsername] = useState("");
+    const [name, setName] = useState("");
+    const [password, setPassword] = useState("");
+    const { setUserId } = useAuthContext();
+    
+    const { client } = useChatContext();
+
+    const connectUser = async () => {
+
+        //sign in with backend and get user token
+        
+        await client.connectUser(
+          {
+            id: username,
+            name: name,
+            image:
+              "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/elon.png",
+          },
+          client.devToken(username)
+        );
+
+        setUserId(username)
+      }
+
+    const signUpUser = () => {
+        connectUser();
+
+        //navigate home page
+    }
 
     useEffect(() => {
         if (error) {
@@ -47,9 +81,16 @@ const SignUpForm = props => {
         }
     }, [error])
 
+    const inputChangedHandler = useCallback((inputId, inputValue) => {
+        const result = validateInput(inputId, inputValue);
+        dispatchFormState({ inputId, validationResult: result, inputValue })
+    }, [dispatchFormState]);
+
+    //first sign in backend and then connect user with stream sdk
     const authHandler = useCallback(async () => {
         try {
             setIsLoading(true);
+
 
             const action = signUp(
                 username,
@@ -67,73 +108,109 @@ const SignUpForm = props => {
     }, [dispatch, formState]);
 
     return (
-            <>
+        <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>We are so excited to see you again</Text>
 
-                <Text style={styles.label}>Username</Text>
-                <View style={styles.inputContainer}>
-                    <AntDesign name="user" size={15} style={styles.icon}  />
-                    <TextInput
-                        style={styles.input}
-                        // placeholder="Enter username"
-                        // placeholderTextColor="grey"
-                        label="Username"
-                        icon="user-o"
-                        iconPack={FontAwesome}
-                        //onInputChanged={inputChangedHandler}
-                        onChangeText={(text) => setUsername(text)}
-                        value={username}
-                        autoCapitalize="none"
-                    />
-                </View>
+        <Text style={styles.text}>ACCOUNT INFORMATION</Text>
 
-                <Input
-                    id="firstName"
-                    label="First name"
-                    icon="user-o"
-                    iconPack={FontAwesome}
-                    onInputChanged={inputChangedHandler}
-                    autoCapitalize="none"
-                    errorText={formState.inputValidities["firstName"]} />
+        <TextInput
+          value={username}
+          onChangeText={setUsername}
+          style={styles.input}
+          placeholderTextColor="grey"
+          placeholder="Username"
+        />
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+          placeholderTextColor="grey"
+          placeholder="Full name"
+        />
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          style={styles.input}
+          placeholderTextColor="grey"
+          placeholder="Password"
+        />
 
-                <Input
-                    id="lastName"
-                    label="Last name"
-                    icon="user-o"
-                    iconPack={FontAwesome}
-                    onInputChanged={inputChangedHandler}
-                    autoCapitalize="none"
-                    errorText={formState.inputValidities["lastName"]} />
+        <Text style={styles.forgotPasswordText}>Forgot password?</Text>
 
-                <Input
-                    id="email"
-                    label="Email"
-                    icon="mail"
-                    iconPack={Feather}
-                    onInputChanged={inputChangedHandler}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    errorText={formState.inputValidities["email"]} />
+        <Pressable style={styles.button} onPress={signUpUser}>
+          <Text style={styles.buttonText}>Login</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+            // <>
 
-                <Input
-                    id="password"
-                    label="Password"
-                    icon="lock"
-                    autoCapitalize="none"
-                    secureTextEntry
-                    iconPack={Feather}
-                    onInputChanged={inputChangedHandler}
-                    errorText={formState.inputValidities["password"]} />
+            //     <Text style={styles.label}>Username</Text>
+            //     <View style={styles.inputContainer}>
+            //         <AntDesign name="user" size={15} style={styles.icon}  />
+            //         <TextInput
+            //             style={styles.input}
+            //             // placeholder="Enter username"
+            //             // placeholderTextColor="grey"
+            //             label="Username"
+            //             icon="user-o"
+            //             iconPack={FontAwesome}
+            //             //onInputChanged={inputChangedHandler}
+            //             onChangeText={(text) => setUsername(text)}
+            //             value={username}
+            //             autoCapitalize="none"
+            //         />
+            //     </View>
+
+            //     <Input
+            //         id="firstName"
+            //         label="First name"
+            //         icon="user-o"
+            //         iconPack={FontAwesome}
+            //         onInputChanged={inputChangedHandler}
+            //         autoCapitalize="none"
+            //         errorText={formState.inputValidities["firstName"]} />
+
+            //     <Input
+            //         id="lastName"
+            //         label="Last name"
+            //         icon="user-o"
+            //         iconPack={FontAwesome}
+            //         onInputChanged={inputChangedHandler}
+            //         autoCapitalize="none"
+            //         errorText={formState.inputValidities["lastName"]} />
+
+            //     <Input
+            //         id="email"
+            //         label="Email"
+            //         icon="mail"
+            //         iconPack={Feather}
+            //         onInputChanged={inputChangedHandler}
+            //         keyboardType="email-address"
+            //         autoCapitalize="none"
+            //         errorText={formState.inputValidities["email"]} />
+
+            //     <Input
+            //         id="password"
+            //         label="Password"
+            //         icon="lock"
+            //         autoCapitalize="none"
+            //         secureTextEntry
+            //         iconPack={Feather}
+            //         onInputChanged={inputChangedHandler}
+            //         errorText={formState.inputValidities["password"]} />
                 
-                {
-                    isLoading ? 
-                    <ActivityIndicator size={'small'} color={colors.primary} style={{ marginTop: 10 }} /> :
-                    <SubmitButton
-                        title="Sign up"
-                        onPress={authHandler}
-                        style={{ marginTop: 20 }}
-                        disabled={!formState.formIsValid}/>
-                }
-            </>
+            //     {
+            //         isLoading ? 
+            //         <ActivityIndicator size={'small'} color={colors.primary} style={{ marginTop: 10 }} /> :
+            //         <SubmitButton
+            //             title="Sign up"
+            //             onPress={authHandler}
+            //             style={{ marginTop: 20 }}
+            //             disabled={!formState.formIsValid}/>
+            //     }
+            // </>
     )
 };
 
@@ -150,13 +227,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center'
     },
-    input: {
-        color: colors.textColor,
-        flex: 1,
-        fontFamily: 'regular',
-        letterSpacing: 0.3,
-        paddingTop: 0
-    },
+    // input: {
+    //     color: colors.textColor,
+    //     flex: 1,
+    //     fontFamily: 'regular',
+    //     letterSpacing: 0.3,
+    //     paddingTop: 0
+    // },
     label: {
         marginVertical: 8,
         fontFamily: 'bold',
@@ -167,5 +244,51 @@ const styles = StyleSheet.create({
         marginRight: 10,
         color: colors.grey
     },
+    container: {
+        backgroundColor: "#36393E",
+        flex: 1,
+        padding: 10,
+        paddingVertical: 30,
+      },
+      title: {
+        color: "white",
+        fontSize: 30,
+        fontWeight: "bold",
+        alignSelf: "center",
+        marginVertical: 10,
+      },
+      subtitle: {
+        color: "lightgrey",
+        fontSize: 20,
+        alignSelf: "center",
+        marginBottom: 30,
+      },
+      input: {
+        backgroundColor: "#202225",
+        marginVertical: 5,
+        padding: 15,
+        color: "white",
+        borderRadius: 5,
+      },
+      button: {
+        backgroundColor: "#5964E8",
+        alignItems: "center",
+        padding: 15,
+        borderRadius: 5,
+        marginVertical: 10,
+      },
+      buttonText: {
+        color: "white",
+        fontWeight: "bold",
+      },
+      forgotPasswordText: {
+        color: "#4CABEB",
+        marginVertical: 5,
+      },
+      text: {
+        color: "white",
+        fontWeight: "bold",
+        marginVertical: 5,
+      },
 
 })
