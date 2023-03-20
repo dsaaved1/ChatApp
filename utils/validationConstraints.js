@@ -22,11 +22,6 @@ export const validateLength = (id, value, minLength, maxLength, allowEmpty) => {
     return validationResult && validationResult[id];
 }
 
-export const validateUsername = (id, value) => {
-    console.log("here in forms")
-    return true
-}
-
 export const validateString = (id, value) => {
     const constraints = { 
         presence: { allowEmpty: false }
