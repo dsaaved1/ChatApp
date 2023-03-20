@@ -88,7 +88,6 @@ const NewChatScreen = props => {
             setIsLoading(true);
 
             const usersResult = await searchUsers(searchTerm);
-            console.log(usersResult)
             delete usersResult[userData.userId];
             setUsers(usersResult);
 

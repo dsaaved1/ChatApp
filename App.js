@@ -60,6 +60,8 @@ export default function App() {
     return null;
   }
 
+  console.log("here in app.js")
+
   return (
     <Provider store={store}>
       <SafeAreaProvider

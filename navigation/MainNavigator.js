@@ -126,6 +126,8 @@ const StackNavigator = () => {
 
 const MainNavigator = (props) => {
 
+  console.log("here in main navigator")
+  
   const dispatch = useDispatch();
   const navigation = useNavigation();
 

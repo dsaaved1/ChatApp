@@ -10,7 +10,7 @@ import colors from "../constants/colors";
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import DataItem from '../components/DataItem';
-
+import { AntDesign } from '@expo/vector-icons';
 
 function getRandomColor() {
   const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
@@ -63,6 +63,8 @@ const ConvosScreen = (props) => {
     return convoList;
   });
 
+  console.log(chatConvos.length, "chatConvos.length updated")
+
   const getChatTitleFromName = () => {
     const otherUserId = chatUsers.find(uid => uid !== userData.userId);
     const otherUserData = storedUsers[otherUserId];
@@ -72,6 +74,7 @@ const ConvosScreen = (props) => {
 
 
   useEffect(() => {
+    console.log("useEffect in ConvosScreen")
     if (!chatData) return;
 
     const leftTitle = chatData.chatName ?? getChatTitleFromName();
@@ -150,6 +153,10 @@ const ConvosScreen = (props) => {
               )}
               keyExtractor={(item) => item.key}
             />
+            
+            <TouchableOpacity onPress={() => props.navigation.navigate("ChatScreen", {chatId: chatId})} style={styles.button}>
+                  <AntDesign name="pluscircleo" size={28} color="white" />
+                </TouchableOpacity>
   
     </PageContainer>
   

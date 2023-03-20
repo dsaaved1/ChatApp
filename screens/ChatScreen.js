@@ -80,6 +80,7 @@ const ChatScreen = (props) => {
   });
   
 
+  console.log(chatMessages.length, " chatMessages.length")
 
   const getChatTitleFromName = () => {
     
@@ -91,6 +92,7 @@ const ChatScreen = (props) => {
 
 
   useEffect(() => {
+    console.log("useEffect in ChatScreen")
     if (!chatData) return;
 
     const subTitle = chatData.chatName ?? getChatTitleFromName();
@@ -146,6 +148,7 @@ const ChatScreen = (props) => {
 
   const sendMessage = useCallback(async () => {
 
+
     try {
       let id = chatId;
       let id2 = convoId;
@@ -153,12 +156,13 @@ const ChatScreen = (props) => {
         console.log("about to create a chat")
         // No chat Id. Create the chat
         id = await createChat(userData.userId, chatData);
-      
+        console.log(id, " chatId")
         setChatId(id);
-        console.log("id: ", id)
+        console.log("chatId: ", id)
         id2 = await createConvo(userData.userId, chatData, id);
-    
+        console.log(id2, " convoId")
         setConvoId(id2);
+        console.log("convoId: ", id2)
       }
 
  

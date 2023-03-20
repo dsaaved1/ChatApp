@@ -23,8 +23,10 @@ const ChatListScreen = props => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
     });
+    console.log(userChats.length, "userChats.length updated")
     
     useEffect(() => {
+        console.log("useEffect in ChatListScreen")
         
         props.navigation.setOptions({
             headerStyle: {
@@ -38,6 +40,7 @@ const ChatListScreen = props => {
 
     useEffect(() => {
 
+        console.log("useEffect in ChatListScreen")
         //if there is no user select neither selected user list move on
         if (!selectedUser && !selectedUserList) {
             return;
@@ -47,7 +50,10 @@ const ChatListScreen = props => {
         let navigationProps;
 
         if (selectedUser) {
+            //for new chat there isn't chatData
             chatData = userChats.find(cd => !cd.isGroupChat && cd.users.includes(selectedUser))
+
+            //console.log(chatData, "chatData")
         }
 
         if (chatData) {
@@ -58,6 +64,7 @@ const ChatListScreen = props => {
             if (!chatUsers.includes(userData.userId)){
                 chatUsers.push(userData.userId);
             }
+
 
             navigationProps = {
                 newChatData: {
@@ -71,6 +78,7 @@ const ChatListScreen = props => {
                 navigationProps.newChatData.chatName = chatName
             }
         }
+
         
         
 
