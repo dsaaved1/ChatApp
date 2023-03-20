@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useReducer, useState } from 'react';
 import Input from '../components/Input';
 import SubmitButton from '../components/SubmitButton';
 import { Feather, FontAwesome } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
 
 import { validateInput } from '../utils/actions/formActions';
 import { reducer } from '../utils/reducers/formReducer';
 import { signUp } from '../utils/actions/authActions';
-import { ActivityIndicator, Alert, TextInput, StyleSheet, View, Text } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import colors from '../constants/colors';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -43,6 +42,7 @@ const SignUpForm = (props) => {
 
     const [error, setError] = useState();
     const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
     const [formState, dispatchFormState] = useReducer(reducer);
 
     const [username, setUsername] = useState("");
@@ -51,6 +51,9 @@ const SignUpForm = (props) => {
     const { setUserId } = useAuthContext();
     
     const { client } = useChatContext();
+=======
+    const [formState, dispatchFormState] = useReducer(reducer, initialState);
+>>>>>>> parent of 5647762 (create username and search only one username functionality added)
 
     const connectUser = async () => {
 
@@ -93,7 +96,6 @@ const SignUpForm = (props) => {
 
 
             const action = signUp(
-                username,
                 formState.inputValues.firstName,
                 formState.inputValues.lastName,
                 formState.inputValues.email,
@@ -108,6 +110,7 @@ const SignUpForm = (props) => {
     }, [dispatch, formState]);
 
     return (
+<<<<<<< HEAD
         <SafeAreaView style={styles.container}>
       <ScrollView>
         <Text style={styles.title}>Welcome back</Text>
@@ -200,6 +203,46 @@ const SignUpForm = (props) => {
             //         iconPack={Feather}
             //         onInputChanged={inputChangedHandler}
             //         errorText={formState.inputValidities["password"]} />
+=======
+            <>
+                <Input
+                    id="firstName"
+                    label="First name"
+                    icon="user-o"
+                    iconPack={FontAwesome}
+                    onInputChanged={inputChangedHandler}
+                    autoCapitalize="none"
+                    errorText={formState.inputValidities["firstName"]} />
+
+                <Input
+                    id="lastName"
+                    label="Last name"
+                    icon="user-o"
+                    iconPack={FontAwesome}
+                    onInputChanged={inputChangedHandler}
+                    autoCapitalize="none"
+                    errorText={formState.inputValidities["lastName"]} />
+
+                <Input
+                    id="email"
+                    label="Email"
+                    icon="mail"
+                    iconPack={Feather}
+                    onInputChanged={inputChangedHandler}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    errorText={formState.inputValidities["email"]} />
+
+                <Input
+                    id="password"
+                    label="Password"
+                    icon="lock"
+                    autoCapitalize="none"
+                    secureTextEntry
+                    iconPack={Feather}
+                    onInputChanged={inputChangedHandler}
+                    errorText={formState.inputValidities["password"]} />
+>>>>>>> parent of 5647762 (create username and search only one username functionality added)
                 
             //     {
             //         isLoading ? 
@@ -214,6 +257,7 @@ const SignUpForm = (props) => {
     )
 };
 
+<<<<<<< HEAD
 export default SignUpForm;
 
 const styles = StyleSheet.create({
@@ -292,3 +336,6 @@ const styles = StyleSheet.create({
       },
 
 })
+=======
+export default SignUpForm;
+>>>>>>> parent of 5647762 (create username and search only one username functionality added)
