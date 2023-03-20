@@ -13,6 +13,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 LogBox.ignoreLogs(['AsyncStorage has been extracted']);
 //AsyncStorage.clear();
 
+
+
+
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -59,6 +62,8 @@ export default function App() {
   if (!appIsLoaded) {
     return null;
   }
+
+  console.log("hello from app.js")
 
   return (
     <Provider store={store}>

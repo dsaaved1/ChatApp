@@ -64,7 +64,7 @@ const MainMessage = props => {
     }
 
     const isStarred = isUserMessage && starredMessages[messageId] !== undefined;
-    const replyingToUser = replyingTo && storedUsers[replyingTo.sentBy];
+    //const replyingToUser = replyingTo && storedUsers[replyingTo.sentBy];
 
     return (
         <View style={styles.wrapperStyle}>
@@ -75,7 +75,7 @@ const MainMessage = props => {
                         <Image source={image} style={styles.profilePicture} />
                     </View>
 
-
+{/* 
                     {
                         replyingToUser &&
                         <Bubble
@@ -83,7 +83,7 @@ const MainMessage = props => {
                             text={replyingTo.text}
                             name={`${replyingToUser.firstName} ${replyingToUser.lastName}`}
                         />
-                    }
+                    } */}
                     
                     <View  style={styles.messageContainer}>
                         <View style={styles.nameContainer}>

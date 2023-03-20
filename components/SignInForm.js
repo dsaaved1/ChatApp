@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { validateInput } from '../utils/actions/formActions';
 import { reducer } from '../utils/reducers/formReducer';
 import { signIn } from '../utils/actions/authActions';
-import { ActivityIndicator, Alert } from 'react-native';
+import { ActivityIndicator, Alert, TouchableOpacity, Text } from 'react-native';
 import { useDispatch } from 'react-redux';
 import colors from '../constants/colors';
 
@@ -22,6 +22,20 @@ const initialState = {
         password: isTestMode,
     },
     formIsValid: isTestMode
+}
+
+import { StreamChat } from "stream-chat";
+
+const API_KEY = "a89tc8x6a9zy";
+const client = StreamChat.getInstance(API_KEY);
+
+const connectUser = async () => {
+  await client.connectUser(
+    {
+      id: "Rosssa",
+    },
+    client.devToken("Rosssa")
+  );
 }
 
 const SignInForm = props => {
@@ -91,6 +105,10 @@ const SignInForm = props => {
                         style={{ marginTop: 20 }}
                         disabled={!formState.formIsValid}/>
                 }
+
+                <TouchableOpacity onPress={connectUser} style={{ marginTop: 20, fontSize: 20, color: "green"}}>
+                    <Text style={{ marginTop: 20, fontSize: 20, color: "green"}}>Hey</Text>
+                </TouchableOpacity>
             </>
     )
 };

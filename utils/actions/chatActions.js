@@ -3,6 +3,8 @@ import { child, get, getDatabase, push, ref, remove, set, update } from "firebas
 import { getFirebaseApp } from "../firebaseHelper";
 import { getUserPushTokens } from "./authActions";
 import { addUserChat, deleteUserChat, getUserChats } from "./userActions";
+import uuid from 'react-native-uuid';
+
 
 function getRandomColor() {
     const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', '#3F22EC', '#FF6EFF', '#FF9933'];
@@ -31,6 +33,54 @@ export const createChat = async (loggedInUserId, chatData) => {
     }
 
     return newChat.key;
+}
+
+export const createChat2 = async (client, chatData) => {
+    try {
+
+        const channel = client.channel('messaging',  uuid.v4(), {
+          isGroupChat: chatData.isGroupChat,
+          chatName: chatData.chatName,
+          typeChat: 'chat',
+        });
+    
+        await channel.create();
+
+        await channel.addMembers(chatData.users);
+    
+        // The channel's unique ID will be available in channel.cid
+        console.log("New channel created with ID:", channel.id);
+    
+        return channel.id;
+      } catch (error) {
+        console.error("Error creating channel:", error);
+        throw error;
+      }
+}
+
+export const createConvo2 = async (client, chatData, chatId, color) => {
+
+    try {
+        const convo = client.channel('messaging', uuid.v4(), {
+        convoName: "New Project",
+        chatId: chatId,
+        typeChat: 'convo',
+        color: color ? color : getRandomColor(),
+      });
+
+        await convo.create();
+
+        await convo.addMembers(chatData.users);
+        
+        
+        // The channel's unique ID will be available in channel.cid
+        console.log("New channel created with ID:", convo.id);
+    
+    return convo.id;
+  } catch (error) {
+    console.error("Error creating channel:", error);
+    throw error;
+  }
 }
 
 export const createConvo = async (loggedInUserId, chatData, chatId, color) => {
@@ -131,6 +181,54 @@ export const updateConvoName = async (convoId, chatId, newConvoName) => {
     });
 }
 
+export const sendMessage2 = async (client, convoId, chatId, senderId, messageText, imageUrl, replyTo, type,  
+    onChannelUpdate,
+    onSubchannelUpdate) => {
+    //get channel of client that has convoId as its id 
+    const channel = client.channel('messaging', chatId);
+    //get channe; of client that has chatId as its id 
+    const subchannel = client.channel('messaging', convoId);
+
+    const messageData = {
+        sentBy: senderId,
+        text: messageText
+    };
+
+    if (replyTo) {
+        messageData.replyTo = replyTo;
+    }
+
+    if (imageUrl) {
+        messageData.imageUrl = imageUrl;
+    }
+
+    if (type) {
+        messageData.typeDisplay = type;
+    }
+
+    //push messageData to channel of client that has convoId as its id
+    await subchannel.sendMessage(messageData);
+
+    //update convo with latest message
+    await subchannel.updatePartial({ set: {
+        updatedBy: senderId,
+        latestMessageText: messageText
+    }});
+
+    //update chat with latest convo and message
+    await channel.updatePartial({ set: {
+        updatedBy: senderId,
+        updatedAt: new Date().toISOString(),
+        latestConvo: subchannel.data.convoName,
+        latestMessageText: messageText
+    }});
+
+    // Call the callback functions after updating the channel and subchannel data
+  onChannelUpdate && onChannelUpdate(channel);
+  onSubchannelUpdate && onSubchannelUpdate(subchannel);
+   
+}
+
 const sendMessage = async (convoId, chatId, senderId, messageText, imageUrl, replyTo, type) => {
     const app = getFirebaseApp();
     const dbRef = ref(getDatabase(app));
@@ -155,6 +253,7 @@ const sendMessage = async (convoId, chatId, senderId, messageText, imageUrl, rep
     }
 
     await push(messagesRef, messageData);
+
 
     
     const convoRef = child(dbRef, `convos/${chatId}/${convoId}`);

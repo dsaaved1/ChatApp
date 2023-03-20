@@ -6,11 +6,16 @@ import PageContainer from '../components/PageContainer';
 import { FontAwesome } from '@expo/vector-icons';
 import colors from '../constants/colors';
 import commonStyles from '../constants/commonStyles';
-import { searchUsers } from '../utils/actions/userActions';
+import { searchUsers2 } from '../utils/actions/userActions';
 import DataItem from '../components/DataItem';
 import { useDispatch, useSelector } from 'react-redux';
 import { setStoredUsers } from '../store/userSlice';
 import ProfileImage from '../components/ProfileImage';
+
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 
 const NewChatScreen = props => {
 
@@ -24,7 +29,9 @@ const NewChatScreen = props => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [text, setText] = useState("")
 
-    const userData = useSelector(state => state.auth.userData);
+    //const userData = useSelector(state => state.auth.userData);
+    const client = props.route?.params?.client
+    const userData = client && client.data
     const storedUsers = useSelector(state => state.users.storedUsers);
 
     const selectedUsersFlatList = useRef();
@@ -87,29 +94,35 @@ const NewChatScreen = props => {
 
             setIsLoading(true);
 
-            const usersResult = await searchUsers(searchTerm);
-            console.log(usersResult)
-            delete usersResult[userData.userId];
+            const usersResult = await searchUsers2(client, searchTerm);
+            //console.log(usersResult.users, "usersResult.users")
+            //delete usersResult[userData.userId];
+            //take out the current user from the search results
             setUsers(usersResult);
 
-            if (Object.keys(usersResult).length === 0) {
+            if (!usersResult) {
                 setNoResultsFound(true);
             }
             else {
+                console.log("here in else")
                 setNoResultsFound(false);
-
-                dispatch(setStoredUsers({ newUsers: usersResult }))
+                //store the users in the redux store
+                //dispatch(setStoredUsers({ newUsers: usersResult }))
             }
 
             setIsLoading(false);
         }, 500);
 
+        console.log(isLoading, "isLoading")
+        console.log(noResultsFound, "noResultsFound")
+        console.log(users, "users")
         return () => clearTimeout(delaySearch);
     }, [searchTerm]);
 
     const userPressed = userId => {
 
         if (isGroupChat) {
+            //newSelectedUsers is a copy of selectedUsers and contains userId if it's not already in selectedUsers
             const newSelectedUsers = selectedUsers.includes(userId) ?
                 selectedUsers.filter(id => id !== userId) :
                 selectedUsers.concat(userId);
@@ -155,7 +168,8 @@ const NewChatScreen = props => {
                         onContentSizeChange={() => selectedUsersFlatList.current.scrollToEnd()}
                         renderItem={itemData => {
                             const userId = itemData.item;
-                            const userData = storedUsers[userId];
+                            //const userData = storedUsers[userId];
+                            const userData = {}
                             return <ProfileImage
                                         style={styles.selectedUserStyle}
                                         size={40}
@@ -196,17 +210,18 @@ const NewChatScreen = props => {
         {
             !isLoading && !noResultsFound && users &&
             <FlatList
-                data={Object.keys(users)}
+                data={users}
                 renderItem={(itemData) => {
-                    const userId = itemData.item;
-                    const userData = users[userId];
+                    console.log(itemData.item, "itemData.item")
+                    const userData = itemData.item;
+                    const userId = itemData.item.id;
 
                     if (existingUsers && existingUsers.includes(userId)) {
                         return;
                     }
 
                     return <DataItem
-                                title={userData.username}
+                                title={userData.name}
                                 subTitle={`${userData.firstName} ${userData.lastName}`}
                                 image={userData.profilePicture}
                                 onPress={() => userPressed(userId)}
@@ -219,6 +234,7 @@ const NewChatScreen = props => {
 
         {
             !isLoading && noResultsFound && (
+                
                 <View style={commonStyles.center}>
                     <FontAwesome
                         name="question"

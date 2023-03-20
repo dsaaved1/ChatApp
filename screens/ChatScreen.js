@@ -28,114 +28,118 @@ import ReplyTo from "../components/ReplyTo";
 import MainMessage from "../components/MainMessage";
 
 import { useSelector } from "react-redux";
-import { createChat, createConvo, sendImage, sendTextMessage,sendMainMessage, updateConvoName} from "../utils/actions/chatActions";
+import { createChat2, createConvo2, sendImage, sendTextMessage,sendMainMessage, updateConvoName, sendMessage2} from "../utils/actions/chatActions";
 import { launchImagePicker, openCamera, uploadImageAsync } from "../utils/imagePickerHelper";
 import AwesomeAlert from 'react-native-awesome-alerts';
 
-
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 
 const ChatScreen = (props) => {
   const [chatUsers, setChatUsers] = useState([]);
   const [messageText, setMessageText] = useState("");
-  const [chatId, setChatId] = useState(props.route?.params?.chatId);
-  const [convoId, setConvoId] = useState(props.route?.params?.convoId);
   const [errorBannerText, setErrorBannerText] = useState("");
   const [replyingTo, setReplyingTo] = useState();
   const [activeMain, setActiveMain] = useState(false);
   const [tempImageUri, setTempImageUri] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [chatId, setChatId] = useState(props.route?.params?.chatId);
+  const [convoId, setConvoId] = useState(props.route?.params?.convoId);
+  const [chatData, setChatData] = useState(props.route?.params?.newChatData || {});
+  const [channel, setChannelData] = useState();
+  const [subchannel, setSubchannelData] = useState();
+  const client = props.route?.params?.client
+  const userData = client && client.user
 
   //we use this to create a reference to component
   // and scrolling the chat to the bottom new message
   const flatList = useRef();
 
-  const userData = useSelector(state => state.auth.userData);
-  const storedUsers = useSelector(state => state.users.storedUsers);
-  const storedChats = useSelector(state => state.chats.chatsData);
-  const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData || {};
+ 
+  const [chatMessages2, setChatMessages2] = useState([]);
+  console.log(chatMessages2.length, " chatMessages2.length")
 
-  // const convoRef = (chatId && useSelector(state => state.convos.convosData[chatId])) || {};
-  // const convoData = convoRef[convoId]
-  // const [title, setTitle] = useState(convoData ? convoData.convoName : "Convo");
-  // const [editing, setEditing] = useState(false)
-
-  const chatMessages = useSelector(state => {
-    if (!convoId) return [];
-    const chatMessagesData = state.messages.messagesData[convoId];
-
-    if (!chatMessagesData) return [];
-
-    const messageList = [];
-    for (const key in chatMessagesData) {
-      const message = chatMessagesData[key];
-
-      messageList.push({
-        key,
-        ...message
-      });
-    }
-
-    return messageList;
-  });
+  const updateChannels = (updatedChannel) => {
+    // Update the 'channels' state in the ChatListScreen component
+  };
   
+  const updateSubChannels = (updatedSubchannel) => {
+    props.route.params.updateSubChannels(updatedSubchannel);
+  };
 
+  const initializeChannels = async () => {
 
-  const getChatTitleFromName = () => {
-    
-    const otherUserId = chatUsers.find(uid => uid !== userData.userId);
-    const otherUserData = storedUsers[otherUserId];
+      if (chatId) {
+        // Get the channel using its ID
+        const channel = client.channel('messaging', chatId);
+        // Watch the channel to get its state
+        await channel.watch();
+        setChannelData(channel.data);
+        console.log(chatId, " chatId In initializeChannels")
 
-    return otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`;
-  }
+        // Get the channel members
+        const channelMembers = channel.state.members;
+
+        // Extract user IDs from the channel members object
+        const userIds = Object.keys(channelMembers);
+
+        //if you have chat id you can get the users from the chat
+        setChatData({users: userIds})
+      }
+
+      if(convoId) {
+        // Get the subchannel using its ID
+        const subchannel = client.channel('messaging', convoId);
+        // Watch the subchannel to get its state
+        await subchannel.watch();
+        setSubchannelData(subchannel.data);
+        console.log(convoId, " convoId In initializeChannels")
+
+        subchannel.on('message.new', event => {
+          //console.log('Received a new message in subchannel', event.message.text);
+          setChatMessages2(prevMessages => [...prevMessages, event.message]);
+        });
+      }
+
+      
+  };
+
+  useEffect(() => {
+    console.log("useEffect in CHATSCREEN")
+    fetchSubchannelAndMessages(convoId)
+    initializeChannels();
+    console.log("here in useEffect of ChatScreen")
+    // client.on(event => {
+    //   //console.log('Received an event on client inside ChatScreen - ', event)
+    // })
+  },[chatId, convoId])
+
+  const fetchSubchannelAndMessages = async (channelId) => {
+    // Get the subchannel using its ID
+    const subchannel = client.channel('messaging', channelId);
+  
+    // Watch the subchannel to get its state
+    await subchannel.watch();
+  
+    // Access the messages from the subchannel's state
+    const messages = subchannel.state.messages;
+    setChatMessages2(messages)
+  };
 
 
   useEffect(() => {
     if (!chatData) return;
 
-    const subTitle = chatData.chatName ?? getChatTitleFromName();
+    //const subTitle = chatData.chatName ?? getChatTitleFromName();
     const modifiable = chatId? true : false
   
     props.navigation.setOptions({
-      headerTitle: () => (
-        <View style={{ alignItems: 'center', margin: 5 }}>
-          {/* {editing?
-           <TextInput style={{ color: 'white', fontSize: 20, fontWeight: 'medium' }}
-           autoFocus={true}
-           onChangeText={text => setTitle(text)}
-           value={title}></TextInput>
-          :
-          <Text style={{ color: 'white', fontSize: 20, fontWeight: 'medium' }}>
-            {title}
-          </Text>
-          } */}
-          <Text style={{ color: '#979797', fontSize: 12, fontWeight: 'regular' }}>
-            {subTitle}
-          </Text>
-        </View>
-      ),
       headerStyle: {
         backgroundColor: '#0E1528', 
       },
-    //   headerRight: modifiable ? 
-    // () => {
-    //   if (editing) {
-    //     return (
-    //       <TouchableOpacity onPress={() => {
-    //         updateConvoName(convoId,chatId,title);
-    //         setEditing(false);
-    //       }}>
-    //         <AntDesign name="checkcircleo" size={24} color='#979797'/>
-    //       </TouchableOpacity>
-    //     );
-    //   } else {
-    //     return (
-    //       <TouchableOpacity onPress={() => setEditing(true)}>
-    //         <Feather name="edit-3" size={24} color='#979797' />
-    //       </TouchableOpacity>
-    //     );
-    //     }
-    // } : null
 
     })
     setChatUsers(chatData.users)
@@ -146,29 +150,35 @@ const ChatScreen = (props) => {
 
   const sendMessage = useCallback(async () => {
 
+  
     try {
       let id = chatId;
       let id2 = convoId;
       if (!id) {
         console.log("about to create a chat")
         // No chat Id. Create the chat
-        id = await createChat(userData.userId, chatData);
-      
+        id = await createChat2(client, chatData);
         setChatId(id);
-        console.log("id: ", id)
-        id2 = await createConvo(userData.userId, chatData, id);
-    
+      }
+
+      if (!id2) {
+        console.log("about to create a convo")
+        // No convo Id. Create the convo
+        id2 = await createConvo2(client, chatData, id);
         setConvoId(id2);
       }
 
  
+      
       if (activeMain){
         console.log("about to send main questions")
-        await sendMainMessage(id2, id, userData, messageText, replyingTo && replyingTo.key, chatUsers);
+        await sendMessage2(client, id2, id, userData.id, messageText, null, null, "main");
         setMessageText("");
       } else {
-        console.log("about to send normal questions")
-        await sendTextMessage(id2, id, userData, messageText, replyingTo && replyingTo.key, chatUsers);
+        //await sendTextMessage(id2, id, userData, messageText, replyingTo && replyingTo.key, chatUsers);
+        await sendMessage2(client, id2, id, userData.id, messageText, null, null, null, updateChannels,
+          updateSubChannels);
+
       } 
        
 
@@ -181,63 +191,6 @@ const ChatScreen = (props) => {
     }
   }, [messageText, chatId]);
 
-
-
-  const pickImage = useCallback(async () => {
-    try {
-      const tempUri = await launchImagePicker();
-      if (!tempUri) return;
-
-      setTempImageUri(tempUri);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [tempImageUri]);
-
-
-
-  const takePhoto = useCallback(async () => {
-    try {
-      const tempUri = await openCamera();
-      if (!tempUri) return;
-
-      setTempImageUri(tempUri);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [tempImageUri]);
-
-
-  // I don't want the user to send images for now.
-
-  // const uploadImage = useCallback(async () => {
-  //   setIsLoading(true);
-
-  //   try {
-
-  //     let id = chatId; 
-  //     let id2 = convoId; 
-  //     if (!id) {
-  //       // No chat Id. Create the chat
-  //       id = await createChat(userData.userId, props.route.params.newChatData);
-  //       setChatId(id);
-  //       id2 = await createConvo(userData.userId, props.route.params.newChatData, id);
-  //       setConvoId(id2);
-  //     }
-
-  //     const uploadUrl = await uploadImageAsync(tempImageUri, true);
-  //     setIsLoading(false);
-
-  //     await sendImage(id2, id, userData, uploadUrl, replyingTo && replyingTo.key, chatUsers)
-  //     setReplyingTo(null);
-      
-  //     setTimeout(() => setTempImageUri(""), 500);
-      
-  //   } catch (error) {
-  //     console.log(error);
-      
-  //   }
-  // }, [isLoading, tempImageUri, chatId])
 
 
   return (
@@ -262,21 +215,25 @@ const ChatScreen = (props) => {
                 onContentSizeChange={() => flatList.current.scrollToEnd({ animated: false })}
                 //puts chat to the bottom when loaded
                 onLayout={() => flatList.current.scrollToEnd({ animated: false })}
-                data={chatMessages}
+                data={chatMessages2}
                 renderItem={(itemData) => {
                   const message = itemData.item;
+                  const messageSentBy = message.user.id
+                  const messageId = message.id
 
-                  const isOwnMessage = message.sentBy === userData.userId;
-                  const sender = message.sentBy && storedUsers[message.sentBy];
-                  const name = sender && `${sender.firstName} ${sender.lastName}`;
+                  const isOwnMessage = messageSentBy === userData.id;
+                  let sender = messageSentBy
+                  let name
+                  //const sender = message.sentBy && storedUsers[message.sentBy];
+                  //const name = sender && `${sender.firstName} ${sender.lastName}`;
 
                   let messageType;
                   let image;
                   let bigName;
               
-                  if (message.type && message.type === "info") {
+                  if (message.typeDisplay && message.typeDisplay === "info") {
                     messageType = "info";
-                  }else if (message.type && message.type === "main"){
+                  }else if (message.typeDisplay && message.typeDisplay === "main"){
                     messageType = "main";
                     image = isOwnMessage ? userData.profilePicture : sender.profilePicture
                     bigName = isOwnMessage ? userData.firstName : name
@@ -288,80 +245,48 @@ const ChatScreen = (props) => {
                   }
                    
                  
-                  if (messageType ==  "main"){
+                  if (message.typeDisplay ==  "main"){
                     return <MainMessage
                             type={messageType}
                             text={message.text}
-                            messageId={message.key}
-                            userId={userData.userId}
+                            messageId={messageId}
+                            userId={userData.id}
                             chatId={chatId}
                             convoId={convoId}
                             date={message.sentAt}
                             name={bigName}
                             uri={image}
                             setReply={() => setReplyingTo(message)}
-                            replyingTo={message.replyTo && chatMessages.find(i => i.key === message.replyTo)}
+                            //replyingTo={message.replyTo && chatMessages.find(i => i.key === message.replyTo)}
                           />
                   } else {
                     return <Bubble
                             type={messageType}
                             text={message.text}
-                            messageId={message.key}
-                            userId={userData.userId}
+                            messageId={message.id}
+                            userId={userData.id}
                             chatId={chatId}
                             convoId={convoId}
                             date={message.sentAt}
                             name={!chatData.isGroupChat || isOwnMessage ? undefined : name}
                             senderID={ message.sentBy ?  message.sentBy: userData.userId}
                             setReply={() => setReplyingTo(message)}
-                            replyingTo={message.replyTo && chatMessages.find(i => i.key === message.replyTo)}
+                            //replyingTo={message.replyTo && chatMessages.find(i => i.key === message.replyTo)}
                             imageUrl={message.imageUrl}
                           />
                   
                   }
                 }}
+                keyExtractor={(item) => item.id}
               />
             }
 
 
           </PageContainer>
 
-          {
-            replyingTo &&
-            <ReplyTo
-              text={replyingTo.text}
-              user={storedUsers[replyingTo.sentBy]}
-              onCancel={() => setReplyingTo(null)}
-            />
-          }
-
        
 
         <View style={styles.inputContainer}>
-
-{/*              
-
-I don't want the user to send images for now.
-
-        {!(activeMain && messageText !== "") && (
-          <TouchableOpacity
-            style={styles.mediaButton}
-            onPress={pickImage}
-          >
-            <Feather name="plus" size={28} color={'#979797'} />
-          </TouchableOpacity>
-        )}
-
-          {!(activeMain && messageText !== "") && (
-              <TouchableOpacity
-                style={styles.mediaButton}
-                onPress={takePhoto}
-              >
-                <Feather name="camera" size={25} color={'#979797'} />
-              </TouchableOpacity>
-          )}
-             */}
-
 
           <TextInput
             style={styles.textbox}
@@ -423,35 +348,7 @@ I don't want the user to send images for now.
             </TouchableOpacity>
           )}
 
-            
-            {/* <AwesomeAlert
-              show={tempImageUri !== ""}
-              title='Send image?'
-              closeOnTouchOutside={true}
-              closeOnHardwareBackPress={false}
-              showCancelButton={true}
-              showConfirmButton={true}
-              cancelText='Cancel'
-              confirmText="Send image"
-              confirmButtonColor={colors.primary}
-              cancelButtonColor={colors.red}
-              titleStyle={styles.popupTitleStyle}
-              onCancelPressed={() => setTempImageUri("")}
-              //onConfirmPressed={uploadImage}
-              onDismiss={() => setTempImageUri("")}
-              customView={(
-                <View>
-                  {
-                    isLoading &&
-                    <ActivityIndicator size='small' color={colors.primary} />
-                  }
-                  {
-                    !isLoading && tempImageUri !== "" &&
-                    <Image source={{ uri: tempImageUri }} style={{ width: 200, height: 200 }} />
-                  }
-                </View>
-              )}
-            /> */}
+          
 
 
         </View>

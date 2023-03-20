@@ -66,7 +66,7 @@ export const searchUsers = async (queryText) => {
         //const queryRef = query(userRef, orderByChild('username'), startAt(searchTerm), endAt(searchTerm + "\uf8ff"));
         const snapshot = await get(queryRef);
 
-        
+        console.log(snapshot.val(), " snapshot.val()")
 
         if (snapshot.exists()) {
             return snapshot.val();
@@ -78,3 +78,29 @@ export const searchUsers = async (queryText) => {
         throw error;
     }
 }
+
+export const searchUsers2 = async (client, queryText) => {
+    const searchTerm = queryText;
+    // const searchTerm = queryText.toLowerCase();
+
+    try {
+
+        // an array of a user object that matches that id [{id: "123", name: "John"}}]
+        const response = await client.queryUsers(
+            { id: { $in: [searchTerm] } },
+            { limit: 1 }
+        );
+
+        if (response.users.length > 0) {
+            return response.users;
+        } else{
+            return {};
+        }
+
+
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+

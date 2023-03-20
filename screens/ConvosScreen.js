@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback} from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector } from 'react-redux';
@@ -11,6 +11,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import DataItem from '../components/DataItem';
 
+import { AntDesign } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 
 function getRandomColor() {
   const colors = ['#6653FF', '#53FF66', '#FF6653', '#BC53FF', '#19C37D', '#FFFF66', 'teal', '#FF6EFF', '#FF9933', '#50BFE6', "#00468C"];
@@ -30,81 +36,38 @@ function formatAmPm(dateString) {
 
 
 const ConvosScreen = (props) => {
-  const [chatUsers, setChatUsers] = useState([]);
+  // const [chatUsers, setChatUsers] = useState([]);
   const chatId = props.route?.params?.chatId;
-  const [convoId, setConvoId] = useState(props.route?.params?.convoId)
-  const storedChats = useSelector(state => state.chats.chatsData);
-  const storedUsers = useSelector(state => state.users.storedUsers);
-  const chatData = (chatId && storedChats[chatId]) || props.route?.params?.newChatData || {};
-  const userData = useSelector(state => state.auth.userData);
+  const chatData = props.route?.params?.chatData
+  const client = props.route?.params?.client
+
+  const [subChannels, setSubChannels] = useState([])
   
-  //chatConvos = [{key: "-NSFDLKSDKD", sentAt: "2022", ...},{}]
-  const chatConvos = useSelector(state => {
-    if (!chatId) return [];
+  console.log(subChannels.length, "subchannels length")
 
-    const chatConvosData = state.convos.convosData[chatId];
 
-    if (!chatConvosData) return [];
+  const fetchSubChannels = async (chatId) => {
+      // Get the list of subchannels within the group channel
+        const userId = client.user.id;
+        
+        const filter = { type: 'messaging', members: { $in: [userId] }, chatId: chatId, typeChat: { $eq: 'convo'}};
+        const sort = [{ last_message_at: -1 }];
 
-    const convoList = [];
-    //key is convoId
-    for (const key in chatConvosData) {
-      //convo is convo Data (fields)
-      const convo = chatConvosData[key];
-
-      convoList.push({
-        //below is the same key: key
-        key,
-        ...convo
-      });
-
-    }
-
-    return convoList;
-  });
-
-  const getChatTitleFromName = () => {
-    const otherUserId = chatUsers.find(uid => uid !== userData.userId);
-    const otherUserData = storedUsers[otherUserId];
-
-    return otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`;
+        const subchannels = await client.queryChannels(filter, sort, {
+            watch: true, // this is the default
+            state: true,
+        });
+        setSubChannels(subchannels)
   }
 
 
-  useEffect(() => {
-    if (!chatData) return;
+  useFocusEffect(
+    useCallback(() => {
+      console.log("useEffect in ConvosScreen")
+        fetchSubChannels(chatId);
+    }, [chatId])
+);
 
-    const leftTitle = chatData.chatName ?? getChatTitleFromName();
-    props.navigation.setOptions({
-      headerStyle: {
-        backgroundColor: '#0E1528', 
-      },
-      headerLeft: () => {
-         return <TouchableOpacity onPress={() => props.navigation.goBack()}>
-            <PageTitle text={leftTitle} />
-          </TouchableOpacity>
-      },
-      headerRight: () => {
-        return <HeaderButtons HeaderButtonComponent={CustomHeaderButton}>
-          {
-            chatId && 
-            <Item
-              title="Chat settings"
-              iconName="settings-outline"
-              color='#979797'
-              onPress={() => chatData.isGroupChat ?
-                props.navigation.navigate("ChatSettings", { chatId }) :
-                props.navigation.navigate("Contact", { uid: chatUsers.find(uid => uid !== userData.userId) })}
-            />
-          }
-        </HeaderButtons>
-      }
-    })
-    setChatUsers(chatData.users)
-  }, [chatUsers])
-
-
-  const sortedConvos = chatConvos.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
   return <PageContainer>
 
@@ -113,43 +76,79 @@ const ConvosScreen = (props) => {
 
                 <View style={styles.rightContainer}>
 
-                    <TouchableOpacity  onPress={() => createConvo(userData.userId,chatData,chatId, getRandomColor())} style={styles.button}>
+                    <TouchableOpacity style={styles.button}>
                         <Text style={styles.buttonText}>New Convo</Text>
                     </TouchableOpacity>
 
                 </View>
+               
             </View>
 
-            <FlatList
-              data={sortedConvos}
-              renderItem= {({ item }) => (
+          
 
-                // 
-                <TouchableOpacity onPress={() => props.navigation.navigate("ChatScreen", { convoId: item.key, chatId: chatId, newChatData: chatData })}>
+            <FlatList
+              data={subChannels}
+              renderItem= {(itemData) => {
+                const convoData = itemData.item;
+                const convoId = convoData.data.id;
+
+                return (<TouchableOpacity onPress={() => props.navigation.navigate("ChatScreen", { convoId: convoId, chatId: chatId, client: client, 
+                  updateSubChannels: (updatedSubchannel) => {
+                    setSubChannels((prevSubChannels) => {
+                    const index = prevSubChannels.findIndex((subchannel) => subchannel.cid === updatedSubchannel.cid);
+                    if (index !== -1) {
+                      return [
+                        ...prevSubChannels.slice(0, index),
+                        updatedSubchannel,
+                        ...prevSubChannels.slice(index + 1),
+                      ];
+                    } else {
+                      return prevSubChannels;
+                    }
+                  });
+                },})}>
                   <View style={styles.container}>
                       <View style={styles.imageContainer}>
-                          <Entypo name="chat" size={35} color={item.color} />
+                          <Entypo name="chat" size={35} color={convoData.data.color} />
                       </View>
 
                       <View style={styles.textContainer}>
                           <View style={styles.titleContainer}>
                               <Text numberOfLines={1} style={styles.title}>
-                                  {item.convoName}
+                                  {convoData.data.convoName}
                               </Text>
                               <Text style={styles.updatedAt}>
-                                  {formatAmPm(item.updatedAt)}
+                                  {formatAmPm(convoData.data.updatedAt)}
                               </Text>
                           </View>
                   
                           <Text numberOfLines={2} style={styles.subTitle}>
-                              {item.latestMessageText}
+                              {convoData.data.latestMessageText}
                           </Text>
                        </View>
                   </View>
-              </TouchableOpacity>
-              )}
-              keyExtractor={(item) => item.key}
+              </TouchableOpacity>);
+              }}
             />
+  
+            <View style={styles.bottomContainer}>
+                <TouchableOpacity onPress={() => props.navigation.navigate("ChatScreen", {chatId: chatId, client: client, updateSubChannels: (updatedSubchannel) => {
+                  setSubChannels((prevSubChannels) => {
+                    const index = prevSubChannels.findIndex((subchannel) => subchannel.cid === updatedSubchannel.cid);
+                    if (index !== -1) {
+                      return [
+                        ...prevSubChannels.slice(0, index),
+                        updatedSubchannel,
+                        ...prevSubChannels.slice(index + 1),
+                      ];
+                    } else {
+                      return prevSubChannels;
+                    }
+                  });
+                }})} style={styles.bottomButton}>
+                  <AntDesign name="pluscircleo" size={28} color="white" />
+                </TouchableOpacity>
+            </View>
   
     </PageContainer>
   
@@ -216,6 +215,21 @@ const styles = StyleSheet.create({
       backgroundColor: 'transparent',
       mixBlendMode: 'overlay',
       opacity: 0.5,
+    },
+    bottomContainer: {
+      width: '100%',
+      position: "absolute",
+      bottom: 0,
+      backgroundColor: "#1C2333",
+      padding: 15,
+      justifyContent: "flex-end",
+      alignItems: "flex-end",
+    },
+    bottomButton: {
+      borderRadius: 20,
+      paddingRight: 20,
+      paddingVertical: 5,
+      marginBottom: 15,
     },
 });
 
